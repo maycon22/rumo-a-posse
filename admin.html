@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Painel · Rumo à Posse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Painel: barra superior, abas por tipo de conteúdo, lista à esquerda e editor à direita (empilha no celular). */
+:root{
+  --ink:#13223d; --paper:#f6f7f9; --card:#fff; --line:#dde2ea; --muted:#5b6778;
+  --marker:#ffd93b; --marker-ink:#13223d; --accent:#1f5fd1; --ok:#1d8a52; --danger:#c0362c;
+  --font-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --font-body:"Public Sans","Segoe UI",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{--ink:#e8edf6;--paper:#0e1626;--card:#16213a;--line:#26324d;--muted:#9aa7bd;--accent:#7fb0ff;--ok:#4cc488;--danger:#ff7a6e;color-scheme:dark}
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:15.5px;line-height:1.5}
+h1,h2,h3{font-family:var(--font-display);margin:0;line-height:1.15}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn{display:inline-flex;align-items:center;gap:6px;font:inherit;font-weight:700;border-radius:9px;padding:9px 16px;cursor:pointer;border:2px solid var(--ink);background:var(--ink);color:var(--paper);text-decoration:none}
+.btn.marker{background:var(--marker);border-color:var(--marker);color:var(--marker-ink)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.danger{background:transparent;color:var(--danger);border-color:var(--danger)}
+.btn.danger.armed{background:var(--danger);color:#fff}
+.btn:disabled{opacity:.5;cursor:wait}
+.hidden{display:none!important}
+
+/* Login */
+.login{min-height:100vh;display:grid;place-items:center;padding:20px}
+.login form{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px;width:100%;max-width:380px;display:grid;gap:14px}
+.mark{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:9px;background:var(--marker);color:var(--marker-ink);font-weight:800}
+
+/* Campos */
+label.f{display:grid;gap:5px;font-weight:600;font-size:.9rem}
+.f small{font-weight:400;color:var(--muted)}
+input[type=text],input[type=email],input[type=password],input[type=url],input[type=date],input[type=number],select,textarea{font:inherit;padding:10px 12px;border-radius:9px;border:1px solid var(--line);background:var(--paper);color:var(--ink);width:100%}
+textarea{min-height:90px;resize:vertical}
+.check{display:flex;gap:10px;align-items:center;font-weight:600;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--paper)}
+.check input{width:20px;height:20px}
+.msg{min-height:1.3em;margin:0;font-weight:600;font-size:.92rem}
+.msg.err{color:var(--danger)} .msg.ok{color:var(--ok)}
+
+/* App */
+header.bar{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--line)}
+header.bar .in{max-width:1240px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header.bar .who{margin-left:auto;color:var(--muted);font-size:.88rem}
+.tabs{display:flex;gap:4px;max-width:1240px;margin:0 auto;padding:0 20px;overflow-x:auto}
+.tabs button{font:inherit;font-weight:700;background:none;border:none;border-bottom:3px solid transparent;padding:10px 12px;color:var(--muted);cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--marker)}
+main{max-width:1240px;margin:0 auto;padding:20px;display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:20px;align-items:start}
+@media (max-width:900px){main{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.list{display:grid;gap:6px}
+.item{display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:var(--paper);text-align:left;font:inherit;color:inherit;width:100%}
+.item:hover{border-color:var(--ink)}
+.item[aria-current=true]{border:2px solid var(--ink)}
+.item strong{font-size:.95rem}
+.item .sub{grid-column:1/-1;color:var(--muted);font-size:.82rem}
+.pill{font-size:.72rem;font-weight:800;padding:2px 8px;border-radius:999px;align-self:start;white-space:nowrap}
+.pill.on{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
+.pill.off{background:var(--line);color:var(--muted)}
+.form{display:grid;gap:14px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:560px){.row2{grid-template-columns:1fr}}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line);padding-top:14px}
+.empty{color:var(--muted);text-align:center;padding:30px 10px}
+
+/* Editor de texto */
+.rt{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--paper)}
+.rt .tb{display:flex;gap:4px;flex-wrap:wrap;padding:6px;border-bottom:1px solid var(--line);background:var(--card);position:sticky;top:0}
+.rt .tb button{font:inherit;font-size:.85rem;font-weight:700;padding:6px 10px;border-radius:7px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.rt .ed{min-height:320px;padding:14px 16px;outline:none;font-size:1.02rem;line-height:1.65}
+.rt .ed:empty::before{content:"Escreva o artigo aqui. Use Subtítulo para separar as partes.";color:var(--muted)}
+.rt .ed h2{font-size:1.3rem;margin:18px 0 6px}
+.rt .ed blockquote{margin:12px 0;padding:10px 14px;border-left:5px solid var(--marker);background:var(--card)}
+.rt .ed p{margin:0 0 10px}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:11px 16px;border-radius:10px;font-weight:600;z-index:9;max-width:calc(100% - 32px)}
+</style>
+</head>
+<body>
+
+<!-- Aviso de configuração -->
+<div id="sem-config" class="login hidden">
+  <div class="panel" style="max-width:460px">
+    <h2>Falta ligar o painel ao Supabase</h2>
+    <p>Abra o arquivo <strong>config.js</strong> e cole a URL do projeto e a chave pública do Supabase. Depois recarregue esta página.</p>
+  </div>
+</div>
+
+<!-- Login -->
+<div id="tela-login" class="login hidden">
+  <form id="form-login">
+    <div style="display:flex;gap:10px;align-items:center"><span class="mark">↗</span><h2>Painel do autor</h2></div>
+    <label class="f" for="l-email">E-mail<input id="l-email" type="email" autocomplete="username" required></label>
+    <label class="f" for="l-senha">Senha<input id="l-senha" type="password" autocomplete="current-password" required></label>
+    <button class="btn marker" type="submit" id="btn-entrar">Entrar</button>
+    <p class="msg" id="login-msg" aria-live="polite"></p>
+    <a href="index.html" style="font-size:.9rem">← Voltar para o site</a>
+  </form>
+</div>
+
+<!-- Painel -->
+<div id="tela-app" class="hidden">
+  <header class="bar">
+    <div class="in">
+      <span class="mark">↗</span><h3>Painel · Rumo à Posse</h3>
+      <span class="who" id="who"></span>
+      <a class="btn ghost" href="index.html" target="_blank" rel="noopener">Ver site</a>
+      <button class="btn ghost" id="btn-sair">Sair</button>
+    </div>
+    <div class="tabs" role="tablist" id="tabs">
+      <button role="tab" data-tab="artigos" aria-selected="true">Artigos</button>
+      <button role="tab" data-tab="concursos" aria-selected="false">Concursos</button>
+      <button role="tab" data-tab="produtos" aria-selected="false">Materiais</button>
+      <button role="tab" data-tab="config" aria-selected="false">Configurações</button>
+    </div>
+  </header>
+  <main>
+    <section class="panel" id="lista-panel">
+      <div class="panel-head"><h3 id="lista-titulo">Artigos</h3><button class="btn marker" id="btn-novo">+ Novo</button></div>
+      <div class="list" id="lista"></div>
+    </section>
+    <section class="panel" id="editor"></section>
+  </main>
+</div>
+
+<div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
+
+<script src="config.js"></script>
+<script src="dados-exemplo.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const hoje = () => new Date().toLocaleDateString("sv-SE");
+const fmtData = d => d ? new Date(d+"T12:00:00").toLocaleDateString("pt-BR") : "";
+const slugify = s => String(s).normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,80);
+let toastT;
+function toast(m){ const t=$("#toast"); t.textContent=m; t.classList.remove("hidden"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.add("hidden"),3500); }
+function erroAmigavel(e){
+  const m = (e && (e.message||e.error_description)) || String(e);
+  if (/duplicate key.*slug/i.test(m)) return "Já existe um artigo com esse endereço (slug). Mude o título ou o endereço.";
+  if (/row-level security|permission denied/i.test(m)) return "Sem permissão. Confira se o seu e-mail está como administrador no Supabase.";
+  if (/Invalid login/i.test(m)) return "E-mail ou senha incorretos.";
+  if (/Failed to fetch|NetworkError/i.test(m)) return "Sem conexão com o Supabase. Verifique a internet e o config.js.";
+  return m;
+}
+
+const CORES = [["#ffd93b","Amarelo"],["#bcd7ff","Azul"],["#c9f0d6","Verde"],["#e3d4ff","Lilás"],["#ffe0c2","Pêssego"]];
+const SITUACOES = [["aberto","Inscrições abertas"],["edital","Edital publicado"],["autorizado","Autorizado"],["previsto","Previsto"]];
+
+/* Definição de cada tipo de conteúdo */
+const ENT = {
+  artigos:{
+    nome:"Artigos", tabela:"site_artigos", ordem:[["data_publicacao",false]],
+    titulo:r=>r.titulo, sub:r=>`${r.categoria} · ${fmtData(r.data_publicacao)}`,
+    novo:()=>({titulo:"",slug:"",categoria:"Método",resumo:"",corpo:"",minutos:5,data_publicacao:hoje(),publicado:false}),
+    campos:[
+      {k:"titulo",label:"Título",tipo:"text",req:true},
+      {k:"slug",label:"Endereço do artigo",tipo:"text",req:true,help:"Preenchido a partir do título. Aparece no link: site/#artigo-endereco"},
+      {k:["categoria","data_publicacao"]},
+      {k:"categoria",label:"Categoria",tipo:"text",lista:"cats",req:true},
+      {k:"data_publicacao",label:"Data",tipo:"date",req:true},
+      {k:"resumo",label:"Resumo",tipo:"textarea",help:"Uma ou duas frases que aparecem no cartão do artigo."},
+      {k:"corpo",label:"Texto do artigo",tipo:"rich"},
+      {k:"publicado",label:"Publicado (visível no site)",tipo:"check"}
+    ]
+  },
+  concursos:{
+    nome:"Concursos", tabela:"site_concursos", ordem:[["ordem",true],["atualizado_em",false]],
+    titulo:r=>r.orgao, sub:r=>`${r.cargo} · ${(SITUACOES.find(s=>s[0]===r.situacao)||[,""])[1]}`,
+    novo:()=>({orgao:"",cargo:"",situacao:"previsto",vagas:"A definir",salario:"A definir",banca:"A definir",escolaridade:"Superior",link_edital:"",ordem:0,publicado:true}),
+    campos:[
+      {k:["orgao","cargo"]},
+      {k:"orgao",label:"Órgão",tipo:"text",req:true},
+      {k:"cargo",label:"Cargo",tipo:"text",req:true},
+      {k:["situacao","escolaridade"]},
+      {k:"situacao",label:"Situação",tipo:"select",opts:SITUACOES},
+      {k:"escolaridade",label:"Escolaridade",tipo:"select",opts:[["Fundamental","Fundamental"],["Médio","Médio"],["Técnico","Técnico"],["Superior","Superior"],["Médio e Superior","Médio e Superior"]]},
+      {k:["vagas","salario"]},
+      {k:"vagas",label:"Vagas",tipo:"text"},
+      {k:"salario",label:"Salário inicial",tipo:"text",help:"Ex.: R$ 9.800,00"},
+      {k:["banca","ordem"]},
+      {k:"banca",label:"Banca",tipo:"text"},
+      {k:"ordem",label:"Posição na lista",tipo:"number",help:"Menor número aparece primeiro."},
+      {k:"link_edital",label:"Link do edital (opcional)",tipo:"url"},
+      {k:"publicado",label:"Publicado (visível no site)",tipo:"check"}
+    ]
+  },
+  produtos:{
+    nome:"Materiais", tabela:"site_produtos", ordem:[["ordem",true]],
+    titulo:r=>r.titulo, sub:r=>`${r.tipo} · R$ ${r.preco}${r.link_checkout?"":" · sem link de pagamento"}`,
+    novo:()=>({titulo:"",tipo:"Resumos",cor:"#ffd93b",preco:"",preco_antigo:"",itens:"",link_checkout:"",ordem:0,publicado:true}),
+    campos:[
+      {k:"titulo",label:"Nome do material",tipo:"text",req:true},
+      {k:["tipo","cor"]},
+      {k:"tipo",label:"Tipo",tipo:"text",lista:"tipos"},
+      {k:"cor",label:"Cor da capa",tipo:"select",opts:CORES},
+      {k:["preco","preco_antigo"]},
+      {k:"preco",label:"Preço (R$)",tipo:"text",req:true,help:"Ex.: 47,90"},
+      {k:"preco_antigo",label:"Preço antigo (opcional)",tipo:"text",help:"Aparece riscado."},
+      {k:"itens",label:"O que vem no material",tipo:"textarea",help:"Um item por linha."},
+      {k:"link_checkout",label:"Link de pagamento",tipo:"url",help:"Cole o link do checkout da Hotmart, Kiwify ou Mercado Pago."},
+      {k:"ordem",label:"Posição na loja",tipo:"number",help:"Menor número aparece primeiro."},
+      {k:"publicado",label:"Publicado (visível no site)",tipo:"check"}
+    ]
+  }
+};
+
+let sb, aba="artigos", linhas=[], atual=null, slugManual=false;
+
+/* ---------- Início e login ---------- */
+async function iniciar(){
+  const c = window.SITE_CONFIG || {};
+  if(!c.SUPABASE_URL || !c.SUPABASE_KEY){ $("#sem-config").classList.remove("hidden"); return; }
+  sb = supabase.createClient(c.SUPABASE_URL, c.SUPABASE_KEY);
+  const { data:{ session } } = await sb.auth.getSession();
+  session ? entrarNoApp(session) : $("#tela-login").classList.remove("hidden");
+}
+
+$("#form-login").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const b=$("#btn-entrar"), m=$("#login-msg");
+  b.disabled=true; m.className="msg"; m.textContent="Entrando…";
+  const { data, error } = await sb.auth.signInWithPassword({ email:$("#l-email").value.trim(), password:$("#l-senha").value });
+  b.disabled=false;
+  if(error){ m.className="msg err"; m.textContent=erroAmigavel(error); return; }
+  m.textContent=""; entrarNoApp(data.session);
+});
+
+async function entrarNoApp(session){
+  const { data:ok, error } = await sb.rpc("site_is_admin");
+  if(error || !ok){
+    await sb.auth.signOut();
+    $("#tela-app").classList.add("hidden"); $("#tela-login").classList.remove("hidden");
+    const m=$("#login-msg"); m.className="msg err";
+    m.textContent = error ? erroAmigavel(error) : "Este e-mail não está cadastrado como administrador do site.";
+    return;
+  }
+  $("#tela-login").classList.add("hidden"); $("#tela-app").classList.remove("hidden");
+  $("#who").textContent = session.user.email;
+  trocarAba("artigos");
+}
+$("#btn-sair").addEventListener("click", async ()=>{ await sb.auth.signOut(); location.reload(); });
+
+/* ---------- Abas e lista ---------- */
+$("#tabs").addEventListener("click", e=>{ const b=e.target.closest("[data-tab]"); if(b) trocarAba(b.dataset.tab); });
+
+function trocarAba(t){
+  aba=t; atual=null;
+  document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-selected", b.dataset.tab===t));
+  if(t==="config"){ $("#lista-panel").classList.add("hidden"); abrirConfig(); return; }
+  $("#lista-panel").classList.remove("hidden");
+  $("#lista-titulo").textContent = ENT[t].nome;
+  $("#editor").innerHTML = `<p class="empty">Escolha um item da lista ou clique em <strong>+ Novo</strong>.</p>`;
+  carregarLista();
+}
+
+async function carregarLista(){
+  const E=ENT[aba];
+  $("#lista").innerHTML = `<p class="empty">Carregando…</p>`;
+  let q = sb.from(E.tabela).select("*");
+  for(const [col,asc] of E.ordem) q=q.order(col,{ascending:asc});
+  const { data, error } = await q;
+  if(error){ $("#lista").innerHTML = `<p class="msg err">${esc(erroAmigavel(error))}</p>`; return; }
+  linhas = data;
+  if(!data.length){
+    $("#lista").innerHTML = `<div class="empty">Nada cadastrado ainda.<br><br><button class="btn ghost" onclick="trocarAba('config')">Importar conteúdo de exemplo</button></div>`;
+    return;
+  }
+  $("#lista").innerHTML = data.map(r=>`
+    <button class="item" data-id="${r.id}" aria-current="${atual&&atual.id===r.id}">
+      <strong>${esc(E.titulo(r))}</strong>
+      <span class="pill ${r.publicado?"on":"off"}">${r.publicado?"Publicado":"Rascunho"}</span>
+      <span class="sub">${esc(E.sub(r))}</span>
+    </button>`).join("");
+}
+$("#lista").addEventListener("click", e=>{
+  const b=e.target.closest(".item"); if(!b) return;
+  abrirEditor(linhas.find(r=>r.id===b.dataset.id));
+  document.querySelectorAll(".item").forEach(i=>i.setAttribute("aria-current", i===b));
+  if(innerWidth<900) $("#editor").scrollIntoView({behavior:"smooth"});
+});
+$("#btn-novo").addEventListener("click", ()=>{
+  document.querySelectorAll(".item").forEach(i=>i.setAttribute("aria-current", false));
+  abrirEditor(ENT[aba].novo());
+  if(innerWidth<900) $("#editor").scrollIntoView({behavior:"smooth"});
+});
+
+/* ---------- Editor ---------- */
+function campoHTML(c, v){
+  const id="c-"+c.k, help=c.help?`<small>${esc(c.help)}</small>`:"";
+  if(c.tipo==="check") return `<label class="check" for="${id}"><input type="checkbox" id="${id}" ${v?"checked":""}>${esc(c.label)}</label>`;
+  if(c.tipo==="textarea") return `<label class="f" for="${id}">${esc(c.label)}<textarea id="${id}">${esc(v)}</textarea>${help}</label>`;
+  if(c.tipo==="select") return `<label class="f" for="${id}">${esc(c.label)}<select id="${id}">${c.opts.map(([val,txt])=>`<option value="${esc(val)}" ${val===v?"selected":""}>${esc(txt)}</option>`).join("")}</select>${help}</label>`;
+  if(c.tipo==="rich") return `<div class="f"><span style="font-weight:600;font-size:.9rem">${esc(c.label)}</span>
+    <div class="rt"><div class="tb" role="toolbar" aria-label="Formatação">
+      <button type="button" data-cmd="h2">Subtítulo</button><button type="button" data-cmd="p">Parágrafo</button>
+      <button type="button" data-cmd="bold"><b>N</b></button><button type="button" data-cmd="italic"><i>I</i></button>
+      <button type="button" data-cmd="ul">• Lista</button><button type="button" data-cmd="quote">Destaque</button>
+      <button type="button" data-cmd="link">Link</button><button type="button" data-cmd="clear">Limpar formatação</button>
+    </div><div class="ed" id="${id}" contenteditable="true" role="textbox" aria-multiline="true">${v||""}</div></div></div>`;
+  const lista = c.lista?` list="dl-${c.lista}"`:"";
+  return `<label class="f" for="${id}">${esc(c.label)}<input type="${c.tipo}" id="${id}" value="${esc(v)}"${lista} ${c.req?"required":""}>${help}</label>`;
+}
+
+function abrirEditor(row){
+  const E=ENT[aba]; atual={...row}; slugManual=!!row.id;
+  const camposPorK = Object.fromEntries(E.campos.filter(c=>typeof c.k==="string").map(c=>[c.k,c]));
+  const usados=new Set(); let html="";
+  for(const c of E.campos){
+    if(Array.isArray(c.k)){ html+=`<div class="row2">${c.k.map(k=>{usados.add(k);return campoHTML(camposPorK[k],row[k]);}).join("")}</div>`; }
+    else if(!usados.has(c.k)) html+=campoHTML(c,row[c.k]);
+  }
+  const cats=[...new Set(linhas.map(r=>r.categoria).filter(Boolean).concat(["Método","Memorização","Edital","Rotina","Disciplinas","Notícias"]))];
+  const tipos=[...new Set(linhas.map(r=>r.tipo).filter(Boolean).concat(["Resumos","Mapas mentais","Questões","Kits","Planners"]))];
+  $("#editor").innerHTML = `
+    <div class="panel-head"><h3>${row.id?"Editar":"Novo"} · ${E.nome.toLowerCase().replace(/s$/,"")}</h3>
+      ${aba==="artigos"&&row.id&&row.publicado?`<a href="index.html#artigo-${esc(row.slug)}" target="_blank" rel="noopener">Ver no site →</a>`:""}</div>
+    <form class="form" id="form-ed" novalidate>${html}
+      <datalist id="dl-cats">${cats.map(x=>`<option value="${esc(x)}">`).join("")}</datalist>
+      <datalist id="dl-tipos">${tipos.map(x=>`<option value="${esc(x)}">`).join("")}</datalist>
+      <div class="actions">
+        <button class="btn marker" type="submit" id="btn-salvar">Salvar</button>
+        ${row.id?`<button class="btn danger" type="button" id="btn-excluir">Excluir</button>`:""}
+        <p class="msg" id="ed-msg" aria-live="polite"></p>
+      </div>
+    </form>`;
+
+  if(aba==="artigos"){
+    const t=$("#c-titulo"), s=$("#c-slug");
+    t.addEventListener("input", ()=>{ if(!slugManual) s.value=slugify(t.value); });
+    s.addEventListener("input", ()=>{ slugManual=true; });
+    ligarEditorTexto();
+  }
+  $("#form-ed").addEventListener("submit", salvar);
+  const bx=$("#btn-excluir");
+  if(bx) bx.addEventListener("click", ()=>{
+    if(!bx.classList.contains("armed")){ bx.classList.add("armed"); bx.textContent="Clique de novo para excluir"; setTimeout(()=>{bx.classList.remove("armed");bx.textContent="Excluir";},4000); return; }
+    excluir();
+  });
+}
+
+function ligarEditorTexto(){
+  const ed=$("#c-corpo");
+  document.execCommand("defaultParagraphSeparator", false, "p");
+  $(".rt .tb").addEventListener("mousedown", e=>{ if(e.target.closest("button")) e.preventDefault(); });
+  $(".rt .tb").addEventListener("click", e=>{
+    const b=e.target.closest("[data-cmd]"); if(!b) return; ed.focus();
+    const c=b.dataset.cmd;
+    if(c==="h2"||c==="p") document.execCommand("formatBlock", false, c);
+    else if(c==="quote") document.execCommand("formatBlock", false, "blockquote");
+    else if(c==="ul") document.execCommand("insertUnorderedList");
+    else if(c==="bold"||c==="italic") document.execCommand(c);
+    else if(c==="clear"){ document.execCommand("removeFormat"); document.execCommand("formatBlock", false, "p"); }
+    else if(c==="link"){
+      const url = window.prompt("Cole o endereço do link (https://...)");
+      if(url) document.execCommand("createLink", false, url);
+    }
+  });
+  ed.addEventListener("paste", e=>{
+    e.preventDefault();
+    const txt=(e.clipboardData||window.clipboardData).getData("text/plain");
+    const html=txt.split(/\n\s*\n|\r\n\s*\r\n/).map(p=>`<p>${esc(p.trim()).replace(/\n/g,"<br>")}</p>`).join("");
+    document.execCommand("insertHTML", false, html);
+  });
+}
+
+function lerForm(){
+  const E=ENT[aba], out={};
+  for(const c of E.campos){
+    if(Array.isArray(c.k)) continue;
+    const el=document.getElementById("c-"+c.k);
+    if(c.tipo==="check") out[c.k]=el.checked;
+    else if(c.tipo==="rich") out[c.k]=el.innerHTML.replace(/<div>/g,"<p>").replace(/<\/div>/g,"</p>");
+    else if(c.tipo==="number") out[c.k]=parseInt(el.value||"0",10);
+    else out[c.k]=el.value.trim();
+  }
+  if(aba==="artigos"){
+    out.slug=slugify(out.slug||out.titulo);
+    const palavras=$("#c-corpo").innerText.trim().split(/\s+/).filter(Boolean).length;
+    out.minutos=Math.max(1, Math.ceil(palavras/200));
+  }
+  return out;
+}
+
+async function salvar(e){
+  e.preventDefault();
+  const m=$("#ed-msg"), b=$("#btn-salvar"), E=ENT[aba];
+  const dados=lerForm();
+  const faltando=E.campos.filter(c=>c.req && !dados[c.k]).map(c=>c.label);
+  if(faltando.length){ m.className="msg err"; m.textContent="Preencha: "+faltando.join(", ")+"."; return; }
+  b.disabled=true; m.className="msg"; m.textContent="Salvando…";
+  const q = atual.id ? sb.from(E.tabela).update(dados).eq("id",atual.id).select().single()
+                     : sb.from(E.tabela).insert(dados).select().single();
+  const { data, error } = await q;
+  b.disabled=false;
+  if(error){ m.className="msg err"; m.textContent=erroAmigavel(error); return; }
+  toast(dados.publicado ? "Salvo e publicado no site." : "Salvo como rascunho.");
+  await carregarLista();
+  abrirEditor(data);
+  document.querySelectorAll(".item").forEach(i=>i.setAttribute("aria-current", i.dataset.id===data.id));
+}
+
+async function excluir(){
+  const { error } = await sb.from(ENT[aba].tabela).delete().eq("id",atual.id);
+  if(error){ $("#ed-msg").className="msg err"; $("#ed-msg").textContent=erroAmigavel(error); return; }
+  toast("Excluído.");
+  trocarAba(aba);
+}
+
+/* ---------- Configurações ---------- */
+async function abrirConfig(){
+  $("#editor").innerHTML = `<p class="empty">Carregando…</p>`;
+  const { data, error } = await sb.from("site_config").select("*");
+  if(error){ $("#editor").innerHTML=`<p class="msg err">${esc(erroAmigavel(error))}</p>`; return; }
+  const cfg=Object.fromEntries(data.map(r=>[r.chave,r.valor]));
+  $("#editor").innerHTML = `
+    <div class="panel-head"><h3>Configurações do site</h3></div>
+    <form class="form" id="form-cfg">
+      <label class="f" for="k-checkout_mesa_mensal">Link de pagamento · Mesa de Estudos mensal<input type="url" id="k-checkout_mesa_mensal" value="${esc(cfg.checkout_mesa_mensal)}"></label>
+      <label class="f" for="k-checkout_mesa_anual">Link de pagamento · Mesa de Estudos anual<input type="url" id="k-checkout_mesa_anual" value="${esc(cfg.checkout_mesa_anual)}"></label>
+      <label class="f" for="k-email_contato">E-mail de contato (página Sobre)<input type="email" id="k-email_contato" value="${esc(cfg.email_contato)}"></label>
+      <div class="actions"><button class="btn marker" type="submit">Salvar configurações</button><p class="msg" id="cfg-msg" aria-live="polite"></p></div>
+    </form>
+    <div style="margin-top:28px;border-top:1px solid var(--line);padding-top:18px">
+      <h3>Conteúdo de exemplo</h3>
+      <p style="color:var(--muted)">Copia para o banco os 6 artigos, 6 concursos e 6 materiais de exemplo, para você editar em vez de começar do zero. Artigos com o mesmo endereço não são duplicados; concursos e materiais só são importados se a lista estiver vazia.</p>
+      <button class="btn ghost" id="btn-importar">Importar conteúdo de exemplo</button>
+      <p class="msg" id="imp-msg" aria-live="polite"></p>
+    </div>`;
+  $("#form-cfg").addEventListener("submit", async e=>{
+    e.preventDefault();
+    const linhasCfg=["checkout_mesa_mensal","checkout_mesa_anual","email_contato"].map(k=>({chave:k,valor:$("#k-"+k).value.trim()}));
+    const { error } = await sb.from("site_config").upsert(linhasCfg);
+    const m=$("#cfg-msg"); m.className = error?"msg err":"msg ok"; m.textContent = error?erroAmigavel(error):"Configurações salvas.";
+  });
+  $("#btn-importar").addEventListener("click", importarExemplos);
+}
+
+async function importarExemplos(){
+  const m=$("#imp-msg"), b=$("#btn-importar"), ex=window.DADOS_EXEMPLO;
+  b.disabled=true; m.className="msg"; m.textContent="Importando…";
+  try{
+    let r = await sb.from("site_artigos").upsert(ex.artigos, { onConflict:"slug", ignoreDuplicates:true });
+    if(r.error) throw r.error;
+    for(const [tab,lista] of [["site_concursos",ex.concursos],["site_produtos",ex.produtos.map(({id,...p})=>p)]]){
+      const { count, error } = await sb.from(tab).select("id",{count:"exact",head:true});
+      if(error) throw error;
+      if(!count){ r = await sb.from(tab).insert(lista); if(r.error) throw r.error; }
+    }
+    m.className="msg ok"; m.textContent="Pronto! Confira as abas Artigos, Concursos e Materiais.";
+  }catch(e){ m.className="msg err"; m.textContent=erroAmigavel(e); }
+  b.disabled=false;
+}
+
+iniciar();
+</script>
+</body>
+</html>

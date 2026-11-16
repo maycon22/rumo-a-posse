@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rumo à Posse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* Layout: barra superior fixa + views roteadas por #hash; marca-texto amarelo sobre azul-tinta, como uma página de caderno grifada. */
+:root{
+  --ink:#13223d;          /* azul-tinta: texto e blocos fortes */
+  --paper:#f6f7f9;        /* fundo */
+  --card:#ffffff;
+  --line:#dde2ea;
+  --muted:#5b6778;
+  --marker:#ffd93b;       /* marca-texto */
+  --marker-ink:#13223d;
+  --accent:#1f5fd1;       /* links e ações secundárias */
+  --ok:#1d8a52; --warn:#b26a00; --info:#1f5fd1; --soon:#7a4bc2;
+  --font-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body:"Public Sans", "Segoe UI", system-ui, sans-serif;
+  --r:12px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#e8edf6; --paper:#0e1626; --card:#16213a; --line:#26324d; --muted:#9aa7bd;
+    --marker:#ffd93b; --marker-ink:#13223d; --accent:#7fb0ff;
+    --ok:#4cc488; --warn:#f0a63a; --info:#7fb0ff; --soon:#b892f0; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#e8edf6; --paper:#0e1626; --card:#16213a; --line:#26324d; --muted:#9aa7bd;
+  --marker:#ffd93b; --marker-ink:#13223d; --accent:#7fb0ff;
+  --ok:#4cc488; --warn:#f0a63a; --info:#7fb0ff; --soon:#b892f0; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+img{max-width:100%}
+h1,h2,h3,h4{font-family:var(--font-display);line-height:1.15;margin:0;text-wrap:balance;letter-spacing:-.01em}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+.hl{background:linear-gradient(transparent 55%, var(--marker) 55%, var(--marker) 92%, transparent 92%);color:inherit;padding:0 .1em}
+
+/* Barra superior */
+header.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:20px;height:64px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-family:var(--font-display);font-weight:800;font-size:1.2rem}
+.brand-mark{width:32px;height:32px;border-radius:8px;background:var(--marker);display:grid;place-items:center;color:var(--marker-ink)}
+nav.main{display:flex;gap:4px;margin-left:auto}
+nav.main a{text-decoration:none;color:var(--ink);font-weight:600;font-size:.95rem;padding:8px 12px;border-radius:8px}
+nav.main a:hover{background:var(--line)}
+nav.main a[aria-current="page"]{background:var(--marker);color:var(--marker-ink)}
+.menu-btn{display:none;margin-left:auto;background:none;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:8px 12px;font:inherit;font-weight:600;cursor:pointer}
+@media (max-width:820px){
+  .menu-btn{display:block}
+  nav.main{display:none;position:absolute;top:64px;left:0;right:0;flex-direction:column;background:var(--paper);border-bottom:1px solid var(--line);padding:8px 20px 16px}
+  nav.main.open{display:flex}
+}
+
+/* Botões */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:inherit;font-weight:700;border-radius:10px;padding:12px 20px;text-decoration:none;cursor:pointer;border:2px solid var(--ink);background:var(--ink);color:var(--paper);transition:transform .15s}
+.btn:hover{transform:translateY(-1px)}
+.btn.marker{background:var(--marker);border-color:var(--marker);color:var(--marker-ink)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.small{padding:8px 14px;font-size:.92rem}
+
+section{padding:56px 0}
+.eyebrow{font-weight:700;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.section-head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+.section-head h2{font-size:clamp(1.6rem,3vw,2.1rem)}
+.lede{color:var(--muted);max-width:62ch;margin:.5rem 0 0}
+
+/* Hero */
+.hero{padding:64px 0 48px}
+.hero-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:40px;align-items:center}
+.hero h1{font-size:clamp(2.2rem,5vw,3.6rem);font-weight:800}
+.hero p{font-size:1.1rem;color:var(--muted);max-width:52ch}
+.hero .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+.edital{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px;box-shadow:0 12px 30px -18px rgba(19,34,61,.35)}
+.edital h3{font-size:1rem;margin-bottom:12px}
+.edital ol{margin:0;padding-left:1.2em;display:grid;gap:8px}
+.edital li::marker{font-family:var(--font-display);font-weight:800}
+.edital .tick{background:var(--marker);color:var(--marker-ink);padding:0 4px;border-radius:3px;font-weight:600}
+@media (max-width:820px){.hero-grid{grid-template-columns:1fr}}
+
+/* Cards / grids */
+.grid{display:grid;gap:20px}
+.g3{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px;display:flex;flex-direction:column;gap:10px}
+.card h3{font-size:1.2rem}
+.card p{margin:0;color:var(--muted)}
+.card .meta{font-size:.85rem;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}
+.card a.stretch{text-decoration:none;color:inherit}
+.card a.stretch:hover h3{text-decoration:underline;text-decoration-color:var(--marker);text-decoration-thickness:4px}
+.tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.03em;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:var(--paper)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.chip{font:inherit;font-size:.9rem;font-weight:600;padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+/* Concursos */
+.notice{border:1px dashed var(--warn);color:var(--ink);background:color-mix(in srgb,var(--warn) 10%,transparent);border-radius:10px;padding:10px 14px;font-size:.9rem;margin-bottom:18px}
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--card)}
+table{width:100%;border-collapse:collapse;font-size:.95rem;min-width:720px}
+th,td{text-align:left;padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--paper)}
+tr:last-child td{border-bottom:none}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.status{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:.82rem;white-space:nowrap}
+.status::before{content:"";width:9px;height:9px;border-radius:50%;background:currentColor}
+.s-aberto{color:var(--ok)} .s-edital{color:var(--info)} .s-autorizado{color:var(--warn)} .s-previsto{color:var(--soon)}
+
+/* Loja */
+.product .cover{height:150px;border-radius:8px;display:grid;place-items:center;font-family:var(--font-display);font-weight:800;font-size:1.3rem;text-align:center;padding:12px;color:var(--marker-ink);position:relative;overflow:hidden}
+.product .price{font-family:var(--font-display);font-weight:800;font-size:1.5rem;font-variant-numeric:tabular-nums}
+.product .price s{font-size:.95rem;color:var(--muted);font-weight:500;margin-right:6px}
+.product ul{margin:0;padding-left:1.1em;color:var(--muted);font-size:.93rem}
+.product .buy{margin-top:auto;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+
+/* Artigo */
+.article{max-width:720px;margin:0 auto}
+.article h1{font-size:clamp(2rem,4.5vw,2.8rem);margin:12px 0}
+.article .meta{color:var(--muted);font-size:.92rem;margin-bottom:28px}
+.article p,.article li{font-size:1.08rem;max-width:65ch}
+.article h2{font-size:1.5rem;margin:32px 0 8px}
+.article blockquote{margin:24px 0;padding:14px 18px;border-left:6px solid var(--marker);background:var(--card);border-radius:0 10px 10px 0}
+.back{display:inline-flex;gap:6px;text-decoration:none;font-weight:600}
+
+/* Página de vendas Mesa de Estudos */
+.sales-hero{background:var(--ink);color:var(--paper);border-radius:20px;padding:48px;display:grid;grid-template-columns:1fr 1.05fr;gap:36px;align-items:center}
+.sales-hero h1{font-size:clamp(2rem,4.5vw,3rem);font-weight:800}
+.sales-hero p{color:color-mix(in srgb,var(--paper) 78%,transparent);font-size:1.08rem}
+.sales-hero .btn.ghost{color:var(--paper);border-color:var(--paper)}
+@media (max-width:860px){.sales-hero{grid-template-columns:1fr;padding:28px}}
+.app-mock{background:#f6f7f9;color:#13223d;border-radius:14px;padding:16px;box-shadow:0 20px 40px -20px rgba(0,0,0,.6);font-size:.85rem}
+.app-mock .bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.app-mock .timer{font-family:var(--font-display);font-size:2.2rem;font-weight:800;font-variant-numeric:tabular-nums}
+.app-mock .row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:8px 10px;background:#fff;border:1px solid #dde2ea;border-radius:8px;margin-top:6px}
+.app-mock .prog{height:6px;background:#dde2ea;border-radius:4px;overflow:hidden;margin-top:4px;grid-column:1/-1}
+.app-mock .prog i{display:block;height:100%;background:#1f5fd1}
+.app-mock .week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;align-items:end;height:60px;margin-top:12px}
+.app-mock .week span{background:#ffd93b;border-radius:3px 3px 0 0}
+.features{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.feature .n{font-family:var(--font-display);font-weight:800;color:var(--muted);font-size:.9rem}
+.plans{grid-template-columns:repeat(auto-fit,minmax(260px,1fr));max-width:900px;margin:0 auto}
+.plan.best{border:2px solid var(--ink);position:relative}
+.plan .badge{position:absolute;top:-12px;left:20px;background:var(--marker);color:var(--marker-ink);font-weight:800;font-size:.75rem;padding:3px 10px;border-radius:999px}
+.plan .price{font-family:var(--font-display);font-size:2.2rem;font-weight:800;font-variant-numeric:tabular-nums}
+.plan .price small{font-size:.95rem;color:var(--muted);font-weight:500}
+.plan ul{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+.plan li::before{content:"✓ ";color:var(--ok);font-weight:800}
+details{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 18px}
+details+details{margin-top:10px}
+summary{font-weight:700;cursor:pointer}
+details p{margin:.6rem 0 0;color:var(--muted)}
+
+/* Newsletter / rodapé */
+.news{background:var(--marker);color:var(--marker-ink);border-radius:20px;padding:36px;display:grid;grid-template-columns:1.2fr 1fr;gap:24px;align-items:center}
+.news h2{font-size:1.8rem}
+.news p{margin:.4rem 0 0}
+.news form{display:flex;gap:10px;flex-wrap:wrap}
+.news label{position:absolute;left:-9999px}
+.news input{flex:1 1 220px;font:inherit;padding:12px 14px;border-radius:10px;border:2px solid var(--marker-ink);background:#fff;color:#13223d}
+.news .btn{background:#13223d;border-color:#13223d;color:#fff}
+.news .msg{flex-basis:100%;font-weight:600;font-size:.92rem;min-height:1.2em;margin:0}
+@media (max-width:760px){.news{grid-template-columns:1fr;padding:24px}}
+footer{border-top:1px solid var(--line);margin-top:56px;padding:32px 0;color:var(--muted);font-size:.9rem}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer a{color:var(--muted)}
+
+/* Toast */
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:12px 18px;border-radius:10px;font-weight:600;max-width:calc(100% - 32px);box-shadow:0 10px 30px rgba(0,0,0,.3);display:none;z-index:50}
+.toast.show{display:block}
+
+.view{display:none}
+.view.active{display:block}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#inicio">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 L20 4"/><path d="M14 4 h6 v6"/></svg>
+      </span>
+      Rumo à Posse
+    </a>
+    <button class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="nav">Menu</button>
+    <nav class="main" id="nav" aria-label="Principal">
+      <a href="#inicio">Início</a>
+      <a href="#artigos">Artigos</a>
+      <a href="#concursos">Concursos</a>
+      <a href="#materiais">Materiais</a>
+      <a href="#mesa-de-estudos">Mesa de Estudos</a>
+      <a href="#sobre">Sobre</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- INÍCIO -->
+  <div class="view" id="v-inicio">
+    <div class="hero">
+      <div class="wrap hero-grid">
+        <div>
+          <span class="eyebrow">Estudo para concursos, do edital à posse</span>
+          <h1>Estude com método, acompanhe os editais e <span class="hl">chegue à nomeação</span>.</h1>
+          <p>Artigos práticos sobre como estudar, notícias dos concursos que importam e materiais feitos por quem vive a rotina de cálculos e prazos do serviço público.</p>
+          <div class="actions">
+            <a class="btn marker" href="#mesa-de-estudos">Conhecer a Mesa de Estudos</a>
+            <a class="btn ghost" href="#concursos">Ver concursos</a>
+          </div>
+        </div>
+        <aside class="edital" aria-label="Checklist do concurseiro">
+          <h3>Checklist da semana</h3>
+          <ol>
+            <li><span class="tick">Ler o edital</span> e marcar o conteúdo programático</li>
+            <li>Montar o ciclo de estudos por peso da disciplina</li>
+            <li>Resolver 30 questões da banca por dia</li>
+            <li>Revisar em 24h, 7 dias e 30 dias</li>
+            <li>Registrar horas líquidas e acertos</li>
+          </ol>
+        </aside>
+      </div>
+    </div>
+
+    <section style="padding-top:8px">
+      <div class="wrap">
+        <div class="section-head">
+          <div><span class="eyebrow">Blog</span><h2>Artigos recentes</h2></div>
+          <a href="#artigos">Todos os artigos →</a>
+        </div>
+        <div class="grid g3" id="home-articles"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="section-head">
+          <div><span class="eyebrow">Radar</span><h2>Concursos em destaque</h2></div>
+          <a href="#concursos">Ver todos →</a>
+        </div>
+        <div class="grid g3" id="home-concursos"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="section-head">
+          <div><span class="eyebrow">Loja</span><h2>Materiais de estudo</h2></div>
+          <a href="#materiais">Ir para a loja →</a>
+        </div>
+        <div class="grid g3" id="home-produtos"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap news-slot"></div>
+    </section>
+  </div>
+
+  <!-- ARTIGOS -->
+  <div class="view" id="v-artigos">
+    <section>
+      <div class="wrap">
+        <div class="section-head">
+          <div><span class="eyebrow">Blog</span><h2>Artigos sobre estudos</h2>
+          <p class="lede">Método, organização e técnicas de memorização aplicadas ao estudo para concursos.</p></div>
+        </div>
+        <div class="filters" id="art-filters" role="group" aria-label="Filtrar por categoria"></div>
+        <div class="grid g3" id="all-articles"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ARTIGO -->
+  <div class="view" id="v-artigo">
+    <section>
+      <div class="wrap"><article class="article" id="article-body"></article></div>
+    </section>
+  </div>
+
+  <!-- CONCURSOS -->
+  <div class="view" id="v-concursos">
+    <section>
+      <div class="wrap">
+        <div class="section-head">
+          <div><span class="eyebrow">Radar de concursos</span><h2>Concursos abertos e previstos</h2>
+          <p class="lede">Situação de cada certame, vagas, salário inicial e banca.</p></div>
+        </div>
+        <p class="notice" id="conc-notice"><strong>Dados de exemplo.</strong> Substitua pelas informações oficiais de cada edital antes de publicar o site.</p>
+        <div class="filters" id="conc-filters" role="group" aria-label="Filtrar por situação"></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Órgão / cargo</th><th>Situação</th><th>Vagas</th><th>Salário inicial</th><th>Banca</th><th>Escolaridade</th></tr></thead>
+            <tbody id="conc-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- MATERIAIS -->
+  <div class="view" id="v-materiais">
+    <section>
+      <div class="wrap">
+        <div class="section-head">
+          <div><span class="eyebrow">Loja</span><h2>Materiais para concursos</h2>
+          <p class="lede">Resumos, mapas mentais e cadernos de questões em PDF, com acesso imediato após a compra.</p></div>
+        </div>
+        <div class="filters" id="prod-filters" role="group" aria-label="Filtrar por tipo"></div>
+        <div class="grid g3" id="all-produtos"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- MESA DE ESTUDOS -->
+  <div class="view" id="v-mesa-de-estudos">
+    <section>
+      <div class="wrap">
+        <div class="sales-hero">
+          <div>
+            <span class="eyebrow" style="color:var(--marker)">Sistema de estudos</span>
+            <h1>Mesa de Estudos: seu ciclo, suas horas e suas revisões num só lugar.</h1>
+            <p>Monte o ciclo pelo edital, cronometre cada sessão, registre questões e deixe as revisões aparecerem no dia certo. Funciona no computador e no celular, com tudo sincronizado.</p>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:20px">
+              <a class="btn marker" href="#planos" data-scroll="planos">Ver planos</a>
+              <a class="btn ghost" href="#recursos" data-scroll="recursos">Como funciona</a>
+            </div>
+          </div>
+          <div class="app-mock" aria-label="Prévia do aplicativo">
+            <div class="bar"><strong>Hoje · Ciclo TCE-GO</strong><span>3h12 líquidas</span></div>
+            <div class="timer">00:47:15</div>
+            <div style="color:#5b6778">Contabilidade Pública · Teoria + questões</div>
+            <div class="row"><span>Direito Administrativo</span><span>72%</span><div class="prog"><i style="width:72%"></i></div></div>
+            <div class="row"><span>Contabilidade Geral</span><span>55%</span><div class="prog"><i style="width:55%"></i></div></div>
+            <div class="row"><span>Língua Portuguesa</span><span>38%</span><div class="prog"><i style="width:38%"></i></div></div>
+            <div class="week" aria-hidden="true">
+              <span style="height:55%"></span><span style="height:80%"></span><span style="height:40%"></span><span style="height:95%"></span><span style="height:70%"></span><span style="height:30%"></span><span style="height:60%"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="recursos" style="padding-top:8px">
+      <div class="wrap">
+        <div class="section-head"><div><span class="eyebrow">Recursos</span><h2>Tudo o que um concurseiro registra, sem planilha</h2></div></div>
+        <div class="grid features">
+          <div class="card feature"><span class="n">01</span><h3>Ciclo de estudos</h3><p>Distribua as disciplinas pelo peso no edital e siga a próxima da fila, sem decidir todo dia o que estudar.</p></div>
+          <div class="card feature"><span class="n">02</span><h3>Cronômetro e horas líquidas</h3><p>Pause nas interrupções e veja só o tempo de estudo real, por dia, semana e disciplina.</p></div>
+          <div class="card feature"><span class="n">03</span><h3>Revisões programadas</h3><p>Cada assunto estudado gera revisões em 1, 7 e 30 dias, que aparecem automaticamente na sua agenda.</p></div>
+          <div class="card feature"><span class="n">04</span><h3>Desempenho em questões</h3><p>Registre acertos e erros e descubra quais assuntos estão puxando sua nota para baixo.</p></div>
+          <div class="card feature"><span class="n">05</span><h3>Edital verticalizado</h3><p>Marque cada tópico como visto, revisado e dominado e acompanhe o percentual do edital cumprido.</p></div>
+          <div class="card feature"><span class="n">06</span><h3>Sincronização</h3><p>Comece no computador do trabalho e continue no celular. Seus dados ficam salvos na sua conta.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="planos">
+      <div class="wrap">
+        <div class="section-head" style="justify-content:center;text-align:center"><div><span class="eyebrow">Planos</span><h2>Escolha como quer estudar</h2></div></div>
+        <div class="grid plans">
+          <div class="card plan">
+            <h3>Mensal</h3>
+            <div class="price">R$ 19,90<small>/mês</small></div>
+            <ul><li>Todos os recursos</li><li>Ciclos ilimitados</li><li>Sincronização entre aparelhos</li><li>Cancele quando quiser</li></ul>
+            <button class="btn ghost" data-plano="mensal" data-link="">Assinar mensal</button>
+          </div>
+          <div class="card plan best">
+            <span class="badge">Mais escolhido</span>
+            <h3>Anual</h3>
+            <div class="price">R$ 179,90<small>/ano</small></div>
+            <ul><li>Tudo do mensal</li><li>Equivale a R$ 14,99 por mês</li><li>Modelos de ciclo para concursos fiscais e de tribunais</li><li>Suporte prioritário</li></ul>
+            <button class="btn marker" data-plano="anual" data-link="">Assinar anual</button>
+          </div>
+        </div>
+        <p style="text-align:center;color:var(--muted);margin-top:16px">7 dias de garantia: se não gostar, devolvemos o valor.</p>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap" style="max-width:780px">
+        <div class="section-head"><div><span class="eyebrow">Dúvidas</span><h2>Perguntas frequentes</h2></div></div>
+        <details><summary>Funciona no celular?</summary><p>Sim. A Mesa de Estudos abre no navegador do celular e do computador, e os dados ficam sincronizados pela sua conta.</p></details>
+        <details><summary>Serve para qualquer concurso?</summary><p>Serve. Você cadastra as disciplinas e os pesos do seu edital. Para concursos de tribunais e de controle externo já existem modelos prontos.</p></details>
+        <details><summary>Posso usar para a faculdade também?</summary><p>Pode. Crie um ciclo para as matérias do semestre e acompanhe horas e revisões do mesmo jeito.</p></details>
+        <details><summary>Como cancelo a assinatura?</summary><p>Pela área do assinante, a qualquer momento. O acesso continua até o fim do período pago.</p></details>
+      </div>
+    </section>
+  </div>
+
+  <!-- SOBRE -->
+  <div class="view" id="v-sobre">
+    <section>
+      <div class="wrap article">
+        <span class="eyebrow">Sobre</span>
+        <h1>Quem escreve por aqui</h1>
+        <p>Sou estudante de Ciências Contábeis e trabalho com cálculos judiciais de precatórios no Tribunal de Justiça de Goiás. Antes disso, foram cinco anos em contabilidade e uma passagem pela área financeira de uma empresa de BPO.</p>
+        <p>Estudo para concursos com o mesmo método que compartilho aqui: ciclo de estudos, horas líquidas registradas, revisões programadas e muita questão da banca. O Rumo à Posse reúne o que funciona na prática, os concursos que estou acompanhando e os materiais que preparo.</p>
+        <h2>Contato</h2>
+        <p>Parcerias, dúvidas sobre materiais ou sugestões de artigo: <strong id="email-contato"></strong></p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Rumo à Posse · Goiânia, GO</span>
+    <span><a href="#artigos">Artigos</a> · <a href="#concursos">Concursos</a> · <a href="#materiais">Materiais</a> · <a href="#mesa-de-estudos">Mesa de Estudos</a> · <a href="admin.html">Área do autor</a></span>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="config.js"></script>
+<script src="dados-exemplo.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script src="site.js"></script>
+</body>
+</html>
