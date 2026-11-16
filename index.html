@@ -123,8 +123,8 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
 
 /* Imagens */
 .thumb{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px;background:var(--line);margin-bottom:6px}
-.thumb-ph{display:grid;place-items:end start;padding:14px;background:var(--ink);background-image:repeating-linear-gradient(135deg,transparent 0 18px,color-mix(in srgb,var(--paper) 6%,transparent) 18px 19px)}
-.thumb-ph span{font-family:var(--font-display);font-weight:800;font-size:1.3rem;color:var(--paper);background:linear-gradient(transparent 55%,color-mix(in srgb,var(--marker) 70%,transparent) 55%)}
+.thumb-ph{display:grid;place-items:end start;padding:14px;background-color:#13223d;background-image:repeating-linear-gradient(135deg,transparent 0 18px,rgba(255,255,255,.06) 18px 19px)}
+.thumb-ph span{font-family:var(--font-display);font-weight:800;font-size:1.3rem;color:#fff;background:linear-gradient(transparent 55%,color-mix(in srgb,var(--marker) 70%,transparent) 55%)}
 .product .cover-img{width:100%;object-fit:cover;padding:0}
 .article .capa{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:14px;margin:0 0 28px}
 .article img{max-width:100%;height:auto;border-radius:10px}
@@ -430,10 +430,10 @@ footer a{color:var(--muted)}
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="config.js"></script>
-<script src="dados-exemplo.js"></script>
+<script src="config.js?v=20261116b"></script>
+<script src="dados-exemplo.js?v=20261116b"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
-<script src="site.js"></script>
+<script src="site.js?v=20261116b"></script>
 </body>
 </html>
