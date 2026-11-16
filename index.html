@@ -121,6 +121,15 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
 .product ul{margin:0;padding-left:1.1em;color:var(--muted);font-size:.93rem}
 .product .buy{margin-top:auto;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 
+/* Imagens */
+.thumb{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px;background:var(--line);margin-bottom:6px}
+.thumb-ph{display:grid;place-items:end start;padding:14px;background:var(--ink);background-image:repeating-linear-gradient(135deg,transparent 0 18px,color-mix(in srgb,var(--paper) 6%,transparent) 18px 19px)}
+.thumb-ph span{font-family:var(--font-display);font-weight:800;font-size:1.3rem;color:var(--paper);background:linear-gradient(transparent 55%,color-mix(in srgb,var(--marker) 70%,transparent) 55%)}
+.product .cover-img{width:100%;object-fit:cover;padding:0}
+.article .capa{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:14px;margin:0 0 28px}
+.article img{max-width:100%;height:auto;border-radius:10px}
+.foto-sobre{width:150px;height:150px;border-radius:50%;object-fit:cover;border:4px solid var(--marker);margin:16px 0 4px}
+
 /* Artigo */
 .article{max-width:720px;margin:0 auto}
 .article h1{font-size:clamp(2rem,4.5vw,2.8rem);margin:12px 0}
@@ -401,6 +410,7 @@ footer a{color:var(--muted)}
     <section>
       <div class="wrap article">
         <span class="eyebrow">Sobre</span>
+        <img id="foto-sobre" class="foto-sobre" alt="Foto do autor" hidden>
         <h1>Quem escreve por aqui</h1>
         <p>Sou estudante de Ciências Contábeis e trabalho com cálculos judiciais de precatórios no Tribunal de Justiça de Goiás. Antes disso, foram cinco anos em contabilidade e uma passagem pela área financeira de uma empresa de BPO.</p>
         <p>Estudo para concursos com o mesmo método que compartilho aqui: ciclo de estudos, horas líquidas registradas, revisões programadas e muita questão da banca. O Rumo à Posse reúne o que funciona na prática, os concursos que estou acompanhando e os materiais que preparo.</p>

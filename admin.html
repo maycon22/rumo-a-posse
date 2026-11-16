@@ -84,6 +84,15 @@ main{max-width:1240px;margin:0 auto;padding:20px;display:grid;grid-template-colu
 .rt .ed h2{font-size:1.3rem;margin:18px 0 6px}
 .rt .ed blockquote{margin:12px 0;padding:10px 14px;border-left:5px solid var(--marker);background:var(--card)}
 .rt .ed p{margin:0 0 10px}
+/* Imagens */
+.img-field .lbl{font-weight:600;font-size:.9rem}
+.img-box{border:1px dashed var(--line);border-radius:10px;background:var(--paper);aspect-ratio:16/9;max-height:240px;display:grid;place-items:center;overflow:hidden}
+.img-box img{width:100%;height:100%;object-fit:cover}
+.img-box .ph{color:var(--muted);font-size:.9rem}
+.img-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn.small{padding:7px 12px;font-size:.88rem}
+.sr{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.rt .ed img{max-width:100%;height:auto;border-radius:8px;display:block;margin:8px 0}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:11px 16px;border-radius:10px;font-weight:600;z-index:9;max-width:calc(100% - 32px)}
 </style>
 </head>
@@ -152,6 +161,8 @@ function erroAmigavel(e){
   if (/duplicate key.*slug/i.test(m)) return "Já existe um artigo com esse endereço (slug). Mude o título ou o endereço.";
   if (/row-level security|permission denied/i.test(m)) return "Sem permissão. Confira se o seu e-mail está como administrador no Supabase.";
   if (/Invalid login/i.test(m)) return "E-mail ou senha incorretos.";
+  if (/bucket not found/i.test(m)) return "A pasta de imagens não existe. Rode o arquivo supabase-imagens.sql no Supabase.";
+  if (/imagem_capa|column .*imagem/i.test(m)) return "Faltam os campos de imagem no banco. Rode o arquivo supabase-imagens.sql no Supabase.";
   if (/Failed to fetch|NetworkError/i.test(m)) return "Sem conexão com o Supabase. Verifique a internet e o config.js.";
   return m;
 }
@@ -164,7 +175,7 @@ const ENT = {
   artigos:{
     nome:"Artigos", tabela:"site_artigos", ordem:[["data_publicacao",false]],
     titulo:r=>r.titulo, sub:r=>`${r.categoria} · ${fmtData(r.data_publicacao)}`,
-    novo:()=>({titulo:"",slug:"",categoria:"Método",resumo:"",corpo:"",minutos:5,data_publicacao:hoje(),publicado:false}),
+    novo:()=>({titulo:"",slug:"",categoria:"Método",resumo:"",imagem_capa:"",corpo:"",minutos:5,data_publicacao:hoje(),publicado:false}),
     campos:[
       {k:"titulo",label:"Título",tipo:"text",req:true},
       {k:"slug",label:"Endereço do artigo",tipo:"text",req:true,help:"Preenchido a partir do título. Aparece no link: site/#artigo-endereco"},
@@ -172,6 +183,7 @@ const ENT = {
       {k:"categoria",label:"Categoria",tipo:"text",lista:"cats",req:true},
       {k:"data_publicacao",label:"Data",tipo:"date",req:true},
       {k:"resumo",label:"Resumo",tipo:"textarea",help:"Uma ou duas frases que aparecem no cartão do artigo."},
+      {k:"imagem_capa",label:"Imagem de capa",tipo:"imagem",pasta:"artigos",help:"Aparece no cartão e no topo do artigo. Formato deitado (16:9) fica melhor."},
       {k:"corpo",label:"Texto do artigo",tipo:"rich"},
       {k:"publicado",label:"Publicado (visível no site)",tipo:"check"}
     ]
@@ -200,7 +212,7 @@ const ENT = {
   produtos:{
     nome:"Materiais", tabela:"site_produtos", ordem:[["ordem",true]],
     titulo:r=>r.titulo, sub:r=>`${r.tipo} · R$ ${r.preco}${r.link_checkout?"":" · sem link de pagamento"}`,
-    novo:()=>({titulo:"",tipo:"Resumos",cor:"#ffd93b",preco:"",preco_antigo:"",itens:"",link_checkout:"",ordem:0,publicado:true}),
+    novo:()=>({titulo:"",tipo:"Resumos",cor:"#ffd93b",imagem:"",preco:"",preco_antigo:"",itens:"",link_checkout:"",ordem:0,publicado:true}),
     campos:[
       {k:"titulo",label:"Nome do material",tipo:"text",req:true},
       {k:["tipo","cor"]},
@@ -209,6 +221,7 @@ const ENT = {
       {k:["preco","preco_antigo"]},
       {k:"preco",label:"Preço (R$)",tipo:"text",req:true,help:"Ex.: 47,90"},
       {k:"preco_antigo",label:"Preço antigo (opcional)",tipo:"text",help:"Aparece riscado."},
+      {k:"imagem",label:"Imagem da capa (opcional)",tipo:"imagem",pasta:"materiais",help:"Sem imagem, a capa usa a cor escolhida."},
       {k:"itens",label:"O que vem no material",tipo:"textarea",help:"Um item por linha."},
       {k:"link_checkout",label:"Link de pagamento",tipo:"url",help:"Cole o link do checkout da Hotmart, Kiwify ou Mercado Pago."},
       {k:"ordem",label:"Posição na loja",tipo:"number",help:"Menor número aparece primeiro."},
@@ -300,6 +313,7 @@ $("#btn-novo").addEventListener("click", ()=>{
 /* ---------- Editor ---------- */
 function campoHTML(c, v){
   const id="c-"+c.k, help=c.help?`<small>${esc(c.help)}</small>`:"";
+  if(c.tipo==="imagem") return imagemHTML(id, c.label, v, c.pasta, c.help);
   if(c.tipo==="check") return `<label class="check" for="${id}"><input type="checkbox" id="${id}" ${v?"checked":""}>${esc(c.label)}</label>`;
   if(c.tipo==="textarea") return `<label class="f" for="${id}">${esc(c.label)}<textarea id="${id}">${esc(v)}</textarea>${help}</label>`;
   if(c.tipo==="select") return `<label class="f" for="${id}">${esc(c.label)}<select id="${id}">${c.opts.map(([val,txt])=>`<option value="${esc(val)}" ${val===v?"selected":""}>${esc(txt)}</option>`).join("")}</select>${help}</label>`;
@@ -308,7 +322,7 @@ function campoHTML(c, v){
       <button type="button" data-cmd="h2">Subtítulo</button><button type="button" data-cmd="p">Parágrafo</button>
       <button type="button" data-cmd="bold"><b>N</b></button><button type="button" data-cmd="italic"><i>I</i></button>
       <button type="button" data-cmd="ul">• Lista</button><button type="button" data-cmd="quote">Destaque</button>
-      <button type="button" data-cmd="link">Link</button><button type="button" data-cmd="clear">Limpar formatação</button>
+      <button type="button" data-cmd="link">Link</button><button type="button" data-cmd="img">Imagem</button><input type="file" class="sr" id="rt-file" accept="image/jpeg,image/png,image/webp,image/gif" tabindex="-1"><button type="button" data-cmd="clear">Limpar formatação</button>
     </div><div class="ed" id="${id}" contenteditable="true" role="textbox" aria-multiline="true">${v||""}</div></div></div>`;
   const lista = c.lista?` list="dl-${c.lista}"`:"";
   return `<label class="f" for="${id}">${esc(c.label)}<input type="${c.tipo}" id="${id}" value="${esc(v)}"${lista} ${c.req?"required":""}>${help}</label>`;
@@ -343,6 +357,7 @@ function abrirEditor(row){
     s.addEventListener("input", ()=>{ slugManual=true; });
     ligarEditorTexto();
   }
+  ligarImagens($("#editor"));
   $("#form-ed").addEventListener("submit", salvar);
   const bx=$("#btn-excluir");
   if(bx) bx.addEventListener("click", ()=>{
@@ -363,10 +378,29 @@ function ligarEditorTexto(){
     else if(c==="ul") document.execCommand("insertUnorderedList");
     else if(c==="bold"||c==="italic") document.execCommand(c);
     else if(c==="clear"){ document.execCommand("removeFormat"); document.execCommand("formatBlock", false, "p"); }
+    else if(c==="img"){
+      const sel=getSelection();
+      rangeSalvo = sel.rangeCount && ed.contains(sel.anchorNode) ? sel.getRangeAt(0).cloneRange() : null;
+      $("#rt-file").click();
+    }
     else if(c==="link"){
       const url = window.prompt("Cole o endereço do link (https://...)");
       if(url) document.execCommand("createLink", false, url);
     }
+  });
+  $("#rt-file").addEventListener("change", async ()=>{
+    const f=$("#rt-file").files[0]; $("#rt-file").value=""; if(!f) return;
+    toast("Enviando imagem…");
+    try{
+      const url = await enviarImagem(f, "artigos");
+      const alt = window.prompt("Descreva a imagem em poucas palavras (ajuda no Google e na acessibilidade):","") || "";
+      ed.focus();
+      const sel=getSelection();
+      if(rangeSalvo){ sel.removeAllRanges(); sel.addRange(rangeSalvo); }
+      else { const r=document.createRange(); r.selectNodeContents(ed); r.collapse(false); sel.removeAllRanges(); sel.addRange(r); }
+      document.execCommand("insertHTML", false, `<p><img src="${esc(url)}" alt="${esc(alt)}"></p><p><br></p>`);
+      toast("Imagem inserida. Clique em Salvar para gravar o artigo.");
+    }catch(err){ toast(erroAmigavel(err)); }
   });
   ed.addEventListener("paste", e=>{
     e.preventDefault();
@@ -384,6 +418,7 @@ function lerForm(){
     if(c.tipo==="check") out[c.k]=el.checked;
     else if(c.tipo==="rich") out[c.k]=el.innerHTML.replace(/<div>/g,"<p>").replace(/<\/div>/g,"</p>");
     else if(c.tipo==="number") out[c.k]=parseInt(el.value||"0",10);
+    else if(c.tipo==="imagem") out[c.k]=el.value;
     else out[c.k]=el.value.trim();
   }
   if(aba==="artigos"){
@@ -419,6 +454,60 @@ async function excluir(){
   trocarAba(aba);
 }
 
+/* ---------- Imagens ---------- */
+let rangeSalvo=null;
+const TIPOS_IMG=["image/jpeg","image/png","image/webp","image/gif"];
+function imagemHTML(id,label,v,pasta,help){
+  return `<div class="f img-field" data-img="${id}" data-pasta="${esc(pasta)}">
+    <span class="lbl">${esc(label)}</span>
+    <div class="img-box"><img alt="" src="${esc(v||"")}" class="${v?"":"hidden"}"><span class="ph ${v?"hidden":""}">Nenhuma imagem</span></div>
+    <div class="img-actions">
+      <label class="btn ghost small" for="f-${id}">Escolher imagem</label>
+      <input type="file" class="sr" id="f-${id}" accept="image/jpeg,image/png,image/webp,image/gif">
+      <button type="button" class="btn ghost small rm">Remover</button>
+    </div>
+    <input type="hidden" id="${id}" value="${esc(v||"")}">
+    ${help?`<small>${esc(help)}</small>`:""}
+    <p class="msg" aria-live="polite"></p>
+  </div>`;
+}
+function ligarImagens(root){
+  root.querySelectorAll("[data-img]").forEach(box=>{
+    const hid=document.getElementById(box.dataset.img), file=box.querySelector("input[type=file]"),
+          img=box.querySelector("img"), ph=box.querySelector(".ph"), msg=box.querySelector(".msg");
+    const mostrar=u=>{ hid.value=u; if(u) img.src=u; img.classList.toggle("hidden",!u); ph.classList.toggle("hidden",!!u); };
+    file.addEventListener("change", async ()=>{
+      const f=file.files[0]; file.value=""; if(!f) return;
+      msg.className="msg"; msg.textContent="Enviando imagem…";
+      try{ mostrar(await enviarImagem(f, box.dataset.pasta)); msg.className="msg ok"; msg.textContent="Imagem enviada. Clique em Salvar para gravar."; }
+      catch(e){ msg.className="msg err"; msg.textContent=erroAmigavel(e); }
+    });
+    box.querySelector(".rm").addEventListener("click", ()=>{ mostrar(""); msg.className="msg"; msg.textContent="Imagem removida. Clique em Salvar para gravar."; });
+  });
+}
+function paraBlob(canvas,tipo,q){ return new Promise(r=>canvas.toBlob(r,tipo,q)); }
+async function comprimir(file, max=1600){
+  const bmp = await createImageBitmap(file);
+  const s = Math.min(1, max/Math.max(bmp.width,bmp.height));
+  const c = document.createElement("canvas");
+  c.width = Math.round(bmp.width*s); c.height = Math.round(bmp.height*s);
+  c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
+  let b = await paraBlob(c,"image/webp",0.82);
+  if(!b || b.type!=="image/webp") b = await paraBlob(c,"image/jpeg",0.85);
+  return b;
+}
+async function enviarImagem(file, pasta){
+  if(!TIPOS_IMG.includes(file.type)) throw new Error("Escolha uma imagem JPG, PNG, WebP ou GIF.");
+  let blob = file;
+  if(file.type!=="image/gif"){ try{ blob = await comprimir(file); }catch(e){ blob = file; } }
+  if(blob.size > 5*1024*1024) throw new Error("Imagem muito grande. O limite é 5 MB.");
+  const ext = {"image/webp":"webp","image/jpeg":"jpg","image/png":"png","image/gif":"gif"}[blob.type] || "jpg";
+  const nome = `${pasta}/${Date.now()}-${slugify(file.name.replace(/\.[^.]+$/,"")).slice(0,40)||"imagem"}.${ext}`;
+  const { error } = await sb.storage.from("site-imagens").upload(nome, blob, { contentType: blob.type, cacheControl: "31536000" });
+  if(error) throw error;
+  return sb.storage.from("site-imagens").getPublicUrl(nome).data.publicUrl;
+}
+
 /* ---------- Configurações ---------- */
 async function abrirConfig(){
   $("#editor").innerHTML = `<p class="empty">Carregando…</p>`;
@@ -431,6 +520,7 @@ async function abrirConfig(){
       <label class="f" for="k-checkout_mesa_mensal">Link de pagamento · Mesa de Estudos mensal<input type="url" id="k-checkout_mesa_mensal" value="${esc(cfg.checkout_mesa_mensal)}"></label>
       <label class="f" for="k-checkout_mesa_anual">Link de pagamento · Mesa de Estudos anual<input type="url" id="k-checkout_mesa_anual" value="${esc(cfg.checkout_mesa_anual)}"></label>
       <label class="f" for="k-email_contato">E-mail de contato (página Sobre)<input type="email" id="k-email_contato" value="${esc(cfg.email_contato)}"></label>
+      ${imagemHTML("k-foto_sobre","Sua foto (página Sobre)",cfg.foto_sobre||"","geral","Uma foto quadrada fica melhor. Ela aparece redonda.")}
       <div class="actions"><button class="btn marker" type="submit">Salvar configurações</button><p class="msg" id="cfg-msg" aria-live="polite"></p></div>
     </form>
     <div style="margin-top:28px;border-top:1px solid var(--line);padding-top:18px">
@@ -439,9 +529,10 @@ async function abrirConfig(){
       <button class="btn ghost" id="btn-importar">Importar conteúdo de exemplo</button>
       <p class="msg" id="imp-msg" aria-live="polite"></p>
     </div>`;
+  ligarImagens($("#editor"));
   $("#form-cfg").addEventListener("submit", async e=>{
     e.preventDefault();
-    const linhasCfg=["checkout_mesa_mensal","checkout_mesa_anual","email_contato"].map(k=>({chave:k,valor:$("#k-"+k).value.trim()}));
+    const linhasCfg=["checkout_mesa_mensal","checkout_mesa_anual","email_contato","foto_sobre"].map(k=>({chave:k,valor:$("#k-"+k).value.trim()}));
     const { error } = await sb.from("site_config").upsert(linhasCfg);
     const m=$("#cfg-msg"); m.className = error?"msg err":"msg ok"; m.textContent = error?erroAmigavel(error):"Configurações salvas.";
   });

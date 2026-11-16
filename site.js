@@ -18,7 +18,7 @@ async function carregar(){
     try{
       const sb = supabase.createClient(c.SUPABASE_URL, c.SUPABASE_KEY);
       const [a,k,p,g] = await Promise.all([
-        sb.from("site_artigos").select("slug,titulo,categoria,resumo,corpo,minutos,data_publicacao").eq("publicado",true).order("data_publicacao",{ascending:false}),
+        sb.from("site_artigos").select("*").eq("publicado",true).order("data_publicacao",{ascending:false}),
         sb.from("site_concursos").select("*").eq("publicado",true).order("ordem").order("atualizado_em",{ascending:false}),
         sb.from("site_produtos").select("*").eq("publicado",true).order("ordem"),
         sb.from("site_config").select("*")
@@ -35,8 +35,11 @@ async function carregar(){
 }
 
 function cardArtigo(a){
-  return `<div class="card"><a class="stretch" href="#artigo-${esc(a.slug)}">
-    <span class="tag">${esc(a.categoria)}</span>
+  const capa = a.imagem_capa
+    ? `<img class="thumb" src="${esc(a.imagem_capa)}" alt="" loading="lazy">`
+    : `<div class="thumb thumb-ph" aria-hidden="true"><span>${esc(a.categoria)}</span></div>`;
+  return `<div class="card"><a class="stretch" href="#artigo-${esc(a.slug)}">${capa}
+    <span class="tag" style="margin-top:4px">${esc(a.categoria)}</span>
     <h3 style="margin-top:10px">${esc(a.titulo)}</h3></a>
     <p>${esc(a.resumo)}</p>
     <div class="meta"><span>${fmtData(a.data_publicacao)}</span><span>${esc(a.minutos)} min de leitura</span></div></div>`;
@@ -50,7 +53,9 @@ function cardConcurso(c){
 function cardProduto(p){
   const itens = String(p.itens||"").split("\n").map(s=>s.trim()).filter(Boolean);
   return `<div class="card product">
-    <div class="cover" style="background:${esc(p.cor||"#ffd93b")}">${esc(p.titulo)}</div>
+    ${p.imagem
+      ? `<img class="cover cover-img" src="${esc(p.imagem)}" alt="Capa: ${esc(p.titulo)}" loading="lazy">`
+      : `<div class="cover" style="background:${esc(p.cor||"#ffd93b")}">${esc(p.titulo)}</div>`}
     <span class="tag" style="align-self:flex-start">${esc(p.tipo)}</span>
     <h3>${esc(p.titulo)}</h3>
     <ul>${itens.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>
@@ -95,6 +100,8 @@ function renderTudo(){
   document.querySelector('[data-plano="mensal"]').dataset.link = CFG.checkout_mesa_mensal || "";
   document.querySelector('[data-plano="anual"]').dataset.link = CFG.checkout_mesa_anual || "";
   $("#email-contato").textContent = CFG.email_contato || "";
+  const foto = $("#foto-sobre");
+  if(CFG.foto_sobre){ foto.src = CFG.foto_sobre; foto.hidden = false; } else foto.hidden = true;
 
   $(".news-slot").innerHTML = `<div class="news">
     <div><h2>Receba os editais na sua caixa de entrada</h2><p>Um e-mail por semana com os concursos novos e o artigo da semana.</p></div>
@@ -122,6 +129,7 @@ function mostrarArtigo(slug){
   $("#article-body").innerHTML = `<a class="back" href="#artigos">← Todos os artigos</a>
     <h1>${esc(a.titulo)}</h1>
     <div class="meta"><span class="tag">${esc(a.categoria)}</span> · ${fmtData(a.data_publicacao)} · ${esc(a.minutos)} min de leitura</div>
+    ${a.imagem_capa ? `<img class="capa" src="${esc(a.imagem_capa)}" alt="">` : ""}
     ${limpa(a.corpo)}
     <blockquote><strong>Organize tudo isso sem planilha.</strong> A Mesa de Estudos monta o ciclo, cronometra e agenda suas revisões. <a href="#mesa-de-estudos">Conhecer</a></blockquote>`;
   document.title = a.titulo + " · Rumo à Posse";
