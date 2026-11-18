@@ -404,10 +404,66 @@ function ligarEditorTexto(){
   });
   ed.addEventListener("paste", e=>{
     e.preventDefault();
-    const txt=(e.clipboardData||window.clipboardData).getData("text/plain");
-    const html=txt.split(/\n\s*\n|\r\n\s*\r\n/).map(p=>`<p>${esc(p.trim()).replace(/\n/g,"<br>")}</p>`).join("");
+    const cd=e.clipboardData||window.clipboardData;
+    let html="";
+    const rico=cd.getData("text/html");
+    if(rico && rico.trim()){ try{ html=limparColado(rico); }catch(err){ html=""; } }
+    if(!html){
+      const txt=cd.getData("text/plain");
+      html=txt.split(/\n\s*\n|\r\n\s*\r\n/).map(p=>"<p>"+esc(p.trim()).replace(/\n/g,"<br>")+"</p>").join("");
+    }
     document.execCommand("insertHTML", false, html);
   });
+}
+
+/* Colar com formatação: mantém subtítulos, negrito, itálico, listas, links, tabelas e imagens.
+   Remove fontes, cores, classes e qualquer script vindos do Word, Google Docs ou de outros sites. */
+function limparColado(bruto){
+  const doc=new DOMParser().parseFromString(bruto,"text/html");
+  const MANTER=new Set(["P","H2","H3","H4","STRONG","EM","U","S","UL","OL","LI","A","BLOCKQUOTE","TABLE","THEAD","TBODY","TR","TH","TD","IMG","FIGURE","FIGCAPTION","BR","HR","CODE","PRE","SUB","SUP"]);
+  const TROCA={H1:"H2",B:"STRONG",I:"EM",H5:"H4",H6:"H4"};
+  const ATRIB={A:["href"],IMG:["src","alt"],TD:["colspan","rowspan","style"],TH:["colspan","rowspan","style"],TABLE:["style"],FIGURE:["style"],FIGCAPTION:["style"]};
+  const PROIBIDAS=["SCRIPT","STYLE","META","LINK","TITLE","IFRAME","OBJECT","EMBED","NOSCRIPT","FORM","INPUT","BUTTON"];
+  const tratar=no=>{
+    if(no.nodeType===3) return document.createTextNode(no.textContent);
+    if(no.nodeType!==1) return null;
+    let tag=no.tagName.toUpperCase();
+    if(PROIBIDAS.includes(tag)) return null;
+    if(tag==="SVG"){
+      const s=document.importNode(no,true);
+      s.querySelectorAll("script,foreignObject").forEach(x=>x.remove());
+      [s,...s.querySelectorAll("*")].forEach(el=>[...el.attributes].forEach(a=>{ if(/^on/i.test(a.name)||/javascript:/i.test(a.value)) el.removeAttribute(a.name); }));
+      return s;
+    }
+    const filhos=()=>{ const f=document.createDocumentFragment(); no.childNodes.forEach(c=>{ const r=tratar(c); if(r) f.appendChild(r); }); return f; };
+    const st=(no.getAttribute("style")||"").toLowerCase();
+    if(tag==="SPAN"){
+      let f=filhos();
+      if(/font-weight:\s*(bold|[6-9]00)/.test(st)){ const b=document.createElement("strong"); b.appendChild(f); f=b; }
+      if(/font-style:\s*italic/.test(st)){ const i=document.createElement("em"); i.appendChild(f); f=i; }
+      return f;
+    }
+    if(tag==="B" && /font-weight:\s*normal/.test(st)) return filhos();
+    if(tag==="DIV"){ if(no.querySelector("p,h1,h2,h3,h4,h5,h6,ul,ol,table,blockquote,div,figure,svg,pre")) return filhos(); tag="P"; }
+    tag=TROCA[tag]||tag;
+    if(!MANTER.has(tag)) return filhos();
+    const el=document.createElement(tag);
+    (ATRIB[tag]||[]).forEach(n=>{ const v=no.getAttribute(n); if(v && !/javascript:|expression\(/i.test(v)) el.setAttribute(n,v); });
+    el.appendChild(filhos());
+    return el;
+  };
+  const caixa=document.createElement("div");
+  doc.body.childNodes.forEach(c=>{ const r=tratar(c); if(r) caixa.appendChild(r); });
+  const BLOCO=/^(P|H2|H3|H4|UL|OL|BLOCKQUOTE|TABLE|FIGURE|HR|PRE|SVG)$/i;
+  const saida=document.createElement("div"); let p=null;
+  [...caixa.childNodes].forEach(n=>{
+    if(n.nodeType===1 && BLOCO.test(n.nodeName)){ p=null; saida.appendChild(n); return; }
+    if(n.nodeType===3 && !n.textContent.trim()){ if(p) p.appendChild(n); return; }
+    if(!p){ p=document.createElement("p"); saida.appendChild(p); }
+    p.appendChild(n);
+  });
+  saida.querySelectorAll("p,li,h2,h3,h4").forEach(x=>{ if(!x.textContent.trim() && !x.querySelector("img,svg")) x.remove(); });
+  return saida.innerHTML.trim();
 }
 
 function lerForm(){
