@@ -22,6 +22,9 @@ const urlSegura = u => /^https?:\/\//i.test(String(u||"").trim()) ? String(u).tr
 const corSegura = c => /^#[0-9a-f]{6}$/i.test(c||"") ? c : "#ffd93b";
 const vazio = msg => `<p style="color:var(--muted)">${msg}</p>`;
 const linkArtigo = slug => "?artigo=" + encodeURIComponent(slug);
+const slugConcurso = c => c.chave ? c.chave.replace(/^folha:/,"").replace(/:/g,"-") : String(c.id || slug2(c.orgao+"-"+c.cargo));
+const slug2 = t => String(t||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+const linkConcurso = c => "?concurso=" + encodeURIComponent(slugConcurso(c));
 
 /* HTML dos artigos: sempre passa pelo DOMPurify. Se ele não carregar, mostra só o texto. */
 if (window.DOMPurify) {
@@ -44,7 +47,7 @@ function aplicar(d){ ARTIGOS=d.artigos; CONCURSOS=d.concursos; PRODUTOS=d.produt
 async function buscarSupabase(){
   const [a,k,p,g] = await Promise.all([
     sb.from("site_artigos").select(COLS_ARTIGO).eq("publicado",true).order("data_publicacao",{ascending:false}),
-    sb.from("site_concursos").select("orgao,orgao_nome,area,cargo,situacao,vagas,salario,banca,escolaridade,inscricoes,provas,link_edital,fonte_url").eq("publicado",true).order("ordem").order("atualizado_em",{ascending:false}),
+    sb.from("site_concursos").select("id,chave,status_fonte,orgao,orgao_nome,area,cargo,situacao,vagas,salario,banca,escolaridade,inscricoes,provas,link_edital,fonte_url").eq("publicado",true).order("ordem").order("atualizado_em",{ascending:false}),
     sb.from("site_produtos").select("titulo,tipo,cor,imagem,preco,preco_antigo,itens,link_checkout").eq("publicado",true).order("ordem"),
     sb.from("site_config").select("chave,valor")
   ]);
@@ -80,10 +83,10 @@ function cardArtigo(a){
 }
 const novaAba = `<span class="sr-only"> (abre em nova aba)</span>`;
 function linksConcurso(c){
-  const edital = urlSegura(c.link_edital), fonte = urlSegura(c.fonte_url);
+  const edital = urlSegura(c.link_edital);
   return [
     edital ? `<a href="${esc(edital)}" target="_blank" rel="noopener noreferrer">Edital${novaAba}</a>` : "",
-    fonte ? `<a href="${esc(fonte)}" target="_blank" rel="noopener noreferrer">Detalhes<span class="sr-only"> de ${esc(c.orgao)} na Folha Dirigida</span>${novaAba}</a>` : ""
+    `<a href="${linkConcurso(c)}">Detalhes<span class="sr-only"> do concurso ${esc(c.orgao)}</span></a>`
   ].filter(Boolean).join(" · ");
 }
 function cardConcurso(c){
@@ -270,25 +273,83 @@ function relacionados(a){
   return outros.length ? `<section class="related" aria-labelledby="rel-h"><h2 id="rel-h">Continue lendo</h2><div class="grid g3">${outros.map(cardArtigo).join("")}</div></section>` : "";
 }
 
+/* ---------- Página do concurso ---------- */
+function frase(c){
+  const nome = c.orgao_nome && c.orgao_nome !== c.orgao ? `${c.orgao_nome} (${c.orgao})` : c.orgao;
+  const sit = {
+    aberto: "está com inscrições abertas",
+    edital: "já tem edital publicado",
+    autorizado: "foi autorizado e está em preparação",
+    previsto: "está previsto e ainda não tem edital"
+  }[c.situacao] || "está em acompanhamento";
+  const partes = [`O concurso ${nome} ${sit}.`];
+  if(c.cargo && c.cargo !== "A definir") partes.push(`Cargos: ${c.cargo.charAt(0).toLowerCase() + c.cargo.slice(1)}.`);
+  if(c.banca && c.banca !== "A definir") partes.push(`A banca organizadora é ${c.banca}.`);
+  return partes.join(" ");
+}
+function mostrarConcurso(id){
+  const caixa = $("#concurso-body"), voltar = `<a class="back" href="#concursos">← Todos os concursos</a>`;
+  const c = CONCURSOS.find(x => slugConcurso(x) === id);
+  if(!c){
+    caixa.innerHTML = `${voltar}<h1 tabindex="-1">Concurso não encontrado</h1><p>Ele pode ter saído da lista de acompanhamento. Veja os <a href="#concursos">concursos atuais</a>.</p>`;
+    definirSEO({titulo:"Concurso não encontrado"}); meta('meta[name="robots"]', "content", "noindex");
+    return;
+  }
+  meta('meta[name="robots"]', "content", "index,follow");
+  const url = BASE + linkConcurso(c);
+  definirSEO({ titulo:`Concurso ${c.orgao}: ${SITUACOES[c.situacao]||""}`, descricao: frase(c) + (c.salario && c.salario!=="A definir" ? ` Remuneração: ${c.salario}.` : ""), url });
+
+  const campo = (rot, v) => v && v !== "" ? `<div><dt>${rot}</dt><dd>${esc(v)}</dd></div>` : "";
+  const edital = urlSegura(c.link_edital), fonte = urlSegura(c.fonte_url);
+  const sinc = CFG.concursos_sincronizado_em ? new Date(CFG.concursos_sincronizado_em) : null;
+  const outros = CONCURSOS.filter(x => x !== c && x.area === c.area).slice(0,3);
+  caixa.innerHTML = `${voltar}
+    <div class="conc-head">
+      <span class="status s-${esc(c.situacao)}">${SITUACOES[c.situacao]||""}</span>${c.area ? `<span class="tag">${esc(c.area)}</span>` : ""}
+    </div>
+    <h1 tabindex="-1">Concurso ${esc(c.orgao)}</h1>
+    ${c.orgao_nome && c.orgao_nome !== c.orgao ? `<p class="conc-orgao">${esc(c.orgao_nome)}</p>` : ""}
+    <p class="conc-resumo">${esc(frase(c))}</p>
+    <dl class="ficha">
+      ${campo("Situação", c.status_fonte || SITUACOES[c.situacao])}
+      ${campo("Cargos", c.cargo)}
+      ${campo("Vagas", c.vagas)}
+      ${campo("Remuneração", c.salario)}
+      ${campo("Banca", c.banca)}
+      ${campo("Escolaridade", c.escolaridade)}
+      ${campo("Inscrições", c.inscricoes)}
+      ${campo("Provas", c.provas)}
+    </dl>
+    <div class="conc-acoes">
+      ${edital ? `<a class="btn marker" href="${esc(edital)}" target="_blank" rel="noopener noreferrer">Ver edital oficial${novaAba}</a>` : ""}
+      ${fonte ? `<a class="btn ghost" href="${esc(fonte)}" target="_blank" rel="noopener noreferrer">Notícia completa na Folha Dirigida${novaAba}</a>` : ""}
+    </div>
+    <p class="conc-fonte">${fonte ? "Informações reunidas pelo Qconcursos Folha Dirigida" : "Informações cadastradas pelo Rumo à Posse"}${sinc && !isNaN(sinc) && fonte ? `, atualizadas em ${sinc.toLocaleDateString("pt-BR")}` : ""}. Datas e regras podem mudar: confirme sempre no edital oficial.</p>
+    <blockquote><strong>Vai prestar este concurso?</strong> A Mesa de Estudos monta o seu ciclo a partir do edital, cronometra as horas líquidas e agenda as revisões. <a href="#mesa-de-estudos">Conhecer</a></blockquote>
+    ${outros.length ? `<section class="related" aria-labelledby="rel-c"><h2 id="rel-c">Outros concursos de ${esc(c.area)}</h2><div class="grid g3">${outros.map(cardConcurso).join("")}</div></section>` : ""}`;
+}
+
 /* ---------- Rotas ---------- */
 const VIEWS = ["inicio","artigos","concursos","materiais","mesa-de-estudos","sobre"];
 function rota(){
   const h = decodeURIComponent((location.hash||"").slice(1));
   // links antigos: #artigo-slug  ->  ?artigo=slug
   if(h.startsWith("artigo-")){ history.replaceState(null, "", location.pathname + linkArtigo(h.slice(7))); return rota(); }
-  const slug = new URLSearchParams(location.search).get("artigo");
-  let view = h ? (VIEWS.includes(h) ? h : null) : (slug ? "artigo" : "inicio");
+  const params = new URLSearchParams(location.search);
+  const slug = params.get("artigo"), conc = params.get("concurso");
+  let view = h ? (VIEWS.includes(h) ? h : null) : (slug ? "artigo" : conc ? "concurso" : "inicio");
   if(["planos","recursos"].includes(h)) view = "mesa-de-estudos";
   if(!view) view = "inicio";
 
   document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active", v.id==="v-"+view));
   document.querySelectorAll("nav.main a").forEach(a=>{
     const alvo = a.getAttribute("href").slice(1);
-    const ativo = alvo===view || (view==="artigo" && alvo==="artigos");
+    const ativo = alvo===view || (view==="artigo" && alvo==="artigos") || (view==="concurso" && alvo==="concursos");
     ativo ? a.setAttribute("aria-current","page") : a.removeAttribute("aria-current");
   });
   fecharMenu();
   if(view==="artigo") mostrarArtigo(slug);
+  else if(view==="concurso") mostrarConcurso(conc);
   else {
     meta('meta[name="robots"]', "content", "index,follow");
     const s = SEO_VIEWS[view] || {};
@@ -378,6 +439,8 @@ $("#ano").textContent = new Date().getFullYear();
       // com cache, só refaz a rota se o artigo aberto não existia na versão guardada
       if(!cache) rota();
       else if(slug && !location.hash && !cache.artigos.some(x=>x.slug===slug)){ primeiraRota = true; rota(); }
+      // a página do concurso é montada só com os dados da lista: redesenha com a versão nova
+      else if(new URLSearchParams(location.search).get("concurso") && !location.hash){ primeiraRota = true; rota(); }
     }
   }
 })();

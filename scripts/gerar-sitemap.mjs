@@ -12,12 +12,19 @@ const r = await fetch(`${URL_SB}/rest/v1/site_artigos?select=slug,atualizado_em,
 if (!r.ok) throw new Error(`Supabase respondeu ${r.status}: ${await r.text()}`);
 const artigos = await r.json();
 
+const rc = await fetch(`${URL_SB}/rest/v1/site_concursos?select=id,chave,atualizado_em&publicado=eq.true&order=ordem`,
+  { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } });
+if (!rc.ok) throw new Error(`Supabase respondeu ${rc.status}: ${await rc.text()}`);
+const concursos = await rc.json();
+const slugConcurso = c => c.chave ? c.chave.replace(/^folha:/, "").replace(/:/g, "-") : String(c.id);
+
 const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
 const dia = d => String(d).slice(0, 10);
 const ultimo = artigos.length ? dia(artigos.map(a => a.atualizado_em || a.data_publicacao).sort().at(-1)) : null;
 const urls = [
   { loc: SITE, lastmod: ultimo },
-  ...artigos.map(a => ({ loc: `${SITE}?artigo=${encodeURIComponent(a.slug)}`, lastmod: dia(a.atualizado_em || a.data_publicacao) }))
+  ...artigos.map(a => ({ loc: `${SITE}?artigo=${encodeURIComponent(a.slug)}`, lastmod: dia(a.atualizado_em || a.data_publicacao) })),
+  ...concursos.map(c => ({ loc: `${SITE}?concurso=${encodeURIComponent(slugConcurso(c))}`, lastmod: dia(c.atualizado_em) }))
 ];
 
 const xml = `<?xml version="1.0" encoding="UTF-8"?>

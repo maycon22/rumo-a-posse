@@ -229,6 +229,18 @@ td.num{white-space:normal;min-width:170px;max-width:260px;font-size:.92rem}
 #conc-areas .chip[aria-pressed="true"]{background:var(--marker);color:var(--marker-ink);border-color:var(--marker)}
 .conc-total{margin:-8px 0 12px;color:var(--muted);font-size:.88rem}
 .conc-fonte{margin:12px 0 0;color:var(--muted);font-size:.85rem}
+
+/* Página do concurso */
+.concurso .conc-head{display:flex;gap:10px;align-items:center;margin-top:18px}
+.concurso h1{margin:10px 0 4px}
+.concurso .conc-orgao{color:var(--muted);font-size:1.05rem;margin:0 0 14px}
+.concurso .conc-resumo{font-size:1.1rem}
+.ficha{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0;margin:24px 0;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.ficha div{padding:14px 18px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);margin:0 -1px -1px 0}
+.ficha dt{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.ficha dd{margin:4px 0 0;font-weight:600;font-variant-numeric:tabular-nums}
+.conc-acoes{display:flex;gap:12px;flex-wrap:wrap}
+.concurso .conc-fonte{margin:14px 0 8px}
 .news .consent{flex-basis:100%;font-size:.82rem;margin:0;opacity:.85}
 .news input[aria-invalid="true"]{border-color:#c0362c}
 
@@ -384,6 +396,13 @@ td.num{white-space:normal;min-width:170px;max-width:260px;font-size:.92rem}
     </section>
   </div>
 
+  <!-- CONCURSO (detalhes) -->
+  <div class="view" id="v-concurso">
+    <section>
+      <div class="wrap"><article class="article concurso" id="concurso-body"></article></div>
+    </section>
+  </div>
+
   <!-- MATERIAIS -->
   <div class="view" id="v-materiais">
     <section>
@@ -503,6 +522,6 @@ td.num{white-space:normal;min-width:170px;max-width:260px;font-size:.92rem}
 <script src="dados-exemplo.js?v=20261119" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js" integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a" crossorigin="anonymous" defer></script>
-<script src="site.js?v=20261120" defer></script>
+<script src="site.js?v=20261120b" defer></script>
 </body>
 </html>
