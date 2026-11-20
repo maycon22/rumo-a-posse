@@ -3,7 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Rumo à Posse</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://hdegaqyvolsqgydwuyau.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Rumo à Posse · Estudo para concursos, do edital à posse</title>
+<meta name="description" content="Artigos práticos sobre como estudar para concursos, radar de editais e materiais de estudo. Do edital à posse.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://maycon22.github.io/rumo-a-posse/">
+<meta name="theme-color" content="#13223d">
+<meta property="og:site_name" content="Rumo à Posse">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Rumo à Posse">
+<meta property="og:description" content="Artigos práticos sobre como estudar para concursos, radar de editais e materiais de estudo. Do edital à posse.">
+<meta property="og:url" content="https://maycon22.github.io/rumo-a-posse/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23ffd93b'/%3E%3Cpath d='M9 23 23 9M17 9h6v6' fill='none' stroke='%2313223d' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Rumo à Posse","url":"https://maycon22.github.io/rumo-a-posse/","inLanguage":"pt-BR","description":"Estudo para concursos, do edital à posse."}</script>
+<link rel="preconnect" href="https://hdegaqyvolsqgydwuyau.supabase.co" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
@@ -187,10 +203,37 @@ footer a{color:var(--muted)}
 
 .view{display:none}
 .view.active{display:block}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* Acessibilidade */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.skip{position:absolute;left:12px;top:-60px;z-index:60;background:var(--marker);color:var(--marker-ink);font-weight:700;padding:10px 16px;border-radius:10px;text-decoration:none}
+.skip:focus{top:12px}
+h1:focus,h2:focus,main:focus{outline:none}
+th[scope="row"]{font-weight:400}
+.news .consent{flex-basis:100%;font-size:.82rem;margin:0;opacity:.85}
+.news input[aria-invalid="true"]{border-color:#c0362c}
+
+/* Carregando */
+.skel{min-height:260px;background:linear-gradient(100deg,var(--card) 40%,color-mix(in srgb,var(--line) 60%,var(--card)) 50%,var(--card) 60%) 0 0/200% 100%;animation:skel 1.4s linear infinite}
+@keyframes skel{to{background-position:-200% 0}}
+.skel-text{display:grid;gap:12px;margin-top:8px}
+.skel-text i{display:block;height:14px;border-radius:6px;background:var(--line)}
+.skel-text i:nth-child(2n){width:80%}
+
+/* Artigos relacionados */
+.related{padding:40px 0 0;margin-top:40px;border-top:1px solid var(--line)}
+.related h2{margin:0 0 18px}
+.related .card p,.related .card li{font-size:.95rem}
+.article .related .g3{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+.article table{border-collapse:collapse;min-width:0;margin:16px 0}
+.article .table-scroll,.article figure{overflow-x:auto;max-width:100%;margin:16px 0}
+.btn[data-sem-link]{opacity:.7;cursor:not-allowed}
+.btn[data-sem-link]:hover{transform:none}
 </style>
 </head>
 <body>
+<a class="skip" href="#conteudo" data-skip>Pular para o conteúdo</a>
 
 <header class="top">
   <div class="wrap">
@@ -212,7 +255,7 @@ footer a{color:var(--muted)}
   </div>
 </header>
 
-<main>
+<main id="conteudo" tabindex="-1">
   <!-- INÍCIO -->
   <div class="view" id="v-inicio">
     <div class="hero">
@@ -245,7 +288,7 @@ footer a{color:var(--muted)}
           <div><span class="eyebrow">Blog</span><h2>Artigos recentes</h2></div>
           <a href="#artigos">Todos os artigos →</a>
         </div>
-        <div class="grid g3" id="home-articles"></div>
+        <div class="grid g3" id="home-articles"><div class="card skel" aria-hidden="true"></div><div class="card skel" aria-hidden="true"></div><div class="card skel" aria-hidden="true"></div></div>
       </div>
     </section>
 
@@ -255,7 +298,7 @@ footer a{color:var(--muted)}
           <div><span class="eyebrow">Radar</span><h2>Concursos em destaque</h2></div>
           <a href="#concursos">Ver todos →</a>
         </div>
-        <div class="grid g3" id="home-concursos"></div>
+        <div class="grid g3" id="home-concursos"><div class="card skel" aria-hidden="true"></div><div class="card skel" aria-hidden="true"></div><div class="card skel" aria-hidden="true"></div></div>
       </div>
     </section>
 
@@ -265,7 +308,7 @@ footer a{color:var(--muted)}
           <div><span class="eyebrow">Loja</span><h2>Materiais de estudo</h2></div>
           <a href="#materiais">Ir para a loja →</a>
         </div>
-        <div class="grid g3" id="home-produtos"></div>
+        <div class="grid g3" id="home-produtos"><div class="card skel" aria-hidden="true"></div><div class="card skel" aria-hidden="true"></div><div class="card skel" aria-hidden="true"></div></div>
       </div>
     </section>
 
@@ -283,7 +326,7 @@ footer a{color:var(--muted)}
           <p class="lede">Método, organização e técnicas de memorização aplicadas ao estudo para concursos.</p></div>
         </div>
         <div class="filters" id="art-filters" role="group" aria-label="Filtrar por categoria"></div>
-        <div class="grid g3" id="all-articles"></div>
+        <div class="grid g3" id="all-articles"><div class="card skel" aria-hidden="true"></div><div class="card skel" aria-hidden="true"></div><div class="card skel" aria-hidden="true"></div></div>
       </div>
     </section>
   </div>
@@ -307,7 +350,8 @@ footer a{color:var(--muted)}
         <div class="filters" id="conc-filters" role="group" aria-label="Filtrar por situação"></div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Órgão / cargo</th><th>Situação</th><th>Vagas</th><th>Salário inicial</th><th>Banca</th><th>Escolaridade</th></tr></thead>
+            <caption class="sr-only">Concursos acompanhados, com situação, vagas, salário, banca e escolaridade</caption>
+            <thead><tr><th scope="col">Órgão / cargo</th><th scope="col">Situação</th><th scope="col">Vagas</th><th scope="col">Salário inicial</th><th scope="col">Banca</th><th scope="col">Escolaridade</th></tr></thead>
             <tbody id="conc-body"></tbody>
           </table>
         </div>
@@ -324,7 +368,7 @@ footer a{color:var(--muted)}
           <p class="lede">Resumos, mapas mentais e cadernos de questões em PDF, com acesso imediato após a compra.</p></div>
         </div>
         <div class="filters" id="prod-filters" role="group" aria-label="Filtrar por tipo"></div>
-        <div class="grid g3" id="all-produtos"></div>
+        <div class="grid g3" id="all-produtos"><div class="card skel" aria-hidden="true"></div><div class="card skel" aria-hidden="true"></div><div class="card skel" aria-hidden="true"></div></div>
       </div>
     </section>
   </div>
@@ -343,7 +387,7 @@ footer a{color:var(--muted)}
               <a class="btn ghost" href="#recursos" data-scroll="recursos">Como funciona</a>
             </div>
           </div>
-          <div class="app-mock" aria-label="Prévia do aplicativo">
+          <div class="app-mock" role="img" aria-label="Prévia do aplicativo: cronômetro, progresso por disciplina e horas da semana">
             <div class="bar"><strong>Hoje · Ciclo TCE-GO</strong><span>3h12 líquidas</span></div>
             <div class="timer">00:47:15</div>
             <div style="color:#5b6778">Contabilidade Pública · Teoria + questões</div>
@@ -380,14 +424,14 @@ footer a{color:var(--muted)}
             <h3>Mensal</h3>
             <div class="price">R$ 19,90<small>/mês</small></div>
             <ul><li>Todos os recursos</li><li>Ciclos ilimitados</li><li>Sincronização entre aparelhos</li><li>Cancele quando quiser</li></ul>
-            <button class="btn ghost" data-plano="mensal" data-link="">Assinar mensal</button>
+            <div id="plano-mensal"><button class="btn ghost" type="button" data-sem-link>Em breve</button></div>
           </div>
           <div class="card plan best">
             <span class="badge">Mais escolhido</span>
             <h3>Anual</h3>
             <div class="price">R$ 179,90<small>/ano</small></div>
             <ul><li>Tudo do mensal</li><li>Equivale a R$ 14,99 por mês</li><li>Modelos de ciclo para concursos fiscais e de tribunais</li><li>Suporte prioritário</li></ul>
-            <button class="btn marker" data-plano="anual" data-link="">Assinar anual</button>
+            <div id="plano-anual"><button class="btn marker" type="button" data-sem-link>Em breve</button></div>
           </div>
         </div>
         <p style="text-align:center;color:var(--muted);margin-top:16px">7 dias de garantia: se não gostar, devolvemos o valor.</p>
@@ -423,17 +467,17 @@ footer a{color:var(--muted)}
 
 <footer>
   <div class="wrap">
-    <span>© 2026 Rumo à Posse · Goiânia, GO</span>
-    <span><a href="#artigos">Artigos</a> · <a href="#concursos">Concursos</a> · <a href="#materiais">Materiais</a> · <a href="#mesa-de-estudos">Mesa de Estudos</a> · <a href="admin.html">Área do autor</a></span>
+    <span>© <span id="ano">2026</span> Rumo à Posse · Goiânia, GO</span>
+    <span><a href="#artigos">Artigos</a> · <a href="#concursos">Concursos</a> · <a href="#materiais">Materiais</a> · <a href="#mesa-de-estudos">Mesa de Estudos</a> · <a href="admin.html" rel="nofollow">Área do autor</a></span>
   </div>
 </footer>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="config.js?v=20261116b"></script>
-<script src="dados-exemplo.js?v=20261116b"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
-<script src="site.js?v=20261116b"></script>
+<script src="config.js?v=20261119" defer></script>
+<script src="dados-exemplo.js?v=20261119" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js" integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a" crossorigin="anonymous" defer></script>
+<script src="site.js?v=20261119" defer></script>
 </body>
 </html>
