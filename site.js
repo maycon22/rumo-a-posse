@@ -249,6 +249,7 @@ function definirSEO({titulo, descricao=DESC_PADRAO, url=BASE, imagem="", tipo="w
   } else if(ld) ld.remove();
 }
 const SEO_VIEWS = {
+  "exame-cfc":{titulo:"Exame de Suficiência do CFC"},
   inicio:   {},
   artigos:  {titulo:"Artigos sobre estudos para concursos", descricao:"Método, organização, revisões e técnicas de memorização aplicadas ao estudo para concursos públicos."},
   concursos:{titulo:"Concursos abertos e previstos", descricao:"Radar de concursos das áreas Tribunal, Fiscal, Controle e Gestão, Policial, Bancária, Legislativa e Administrativa: situação, vagas, salário, banca e inscrições."},
@@ -475,8 +476,7 @@ async function mostrarCFC(){
   const maxAprov = Math.max(...CFC.historico.map(h => h.aprovados || 0));
   const secoes = [["cfc-proxima","Próxima prova"],["cfc-cronograma","Cronograma"],["cfc-prova","Como é a prova"],["cfc-quem","Quem pode fazer"],["cfc-publicacoes","Publicações da FGV"],["cfc-historico","Últimas edições"],["cfc-cidades","Cidades de prova"]];
 
-  caixa.innerHTML = `<a class="back" href="#concursos">← Todos os concursos</a>
-    <div class="conc-head"><span class="status s-${s.classe}">${esc(s.rotulo)}</span><span class="tag">Contabilidade</span><span class="tag">FGV</span></div>
+  caixa.innerHTML = `<div class="conc-head"><span class="status s-${s.classe}">${esc(s.rotulo)}</span><span class="tag">Contabilidade</span><span class="tag">FGV</span></div>
     <h1 tabindex="-1">Exame de Suficiência do CFC</h1>
     <p class="conc-orgao">Conselho Federal de Contabilidade · organização da Fundação Getulio Vargas</p>
     <p class="conc-resumo">${esc(CFC.sobre.objetivo)}</p>
@@ -591,7 +591,7 @@ function rota(){
   document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active", v.id==="v-"+view));
   document.querySelectorAll("nav.main a").forEach(a=>{
     const alvo = a.getAttribute("href").slice(1);
-    const ativo = alvo===view || (view==="artigo" && alvo==="artigos") || ((view==="concurso" || view==="exame-cfc") && alvo==="concursos");
+    const ativo = alvo===view || (view==="artigo" && alvo==="artigos") || (view==="concurso" && alvo==="concursos");
     ativo ? a.setAttribute("aria-current","page") : a.removeAttribute("aria-current");
   });
   fecharMenu();

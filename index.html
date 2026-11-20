@@ -430,6 +430,7 @@ td.cfc-links{font-size:.88rem;white-space:nowrap}
 .cfc-uf{padding:10px 14px}
 .cfc-uf+.cfc-uf{margin-top:6px}
 .cfc-uf p{margin:.5rem 0 0}
+@media (max-width:1100px) and (min-width:821px){nav.main a{padding:8px 9px;font-size:.92rem}}
 </style>
 </head>
 <body>
@@ -452,6 +453,7 @@ td.cfc-links{font-size:.88rem;white-space:nowrap}
       <a href="#inicio">Início</a>
       <a href="#artigos">Artigos</a>
       <a href="#concursos">Concursos</a>
+      <a href="#exame-cfc">Exame CFC</a>
       <a href="#materiais">Materiais</a>
       <a href="#mesa-de-estudos">Mesa de Estudos</a>
       <a href="#sobre">Sobre</a>
@@ -556,12 +558,7 @@ td.cfc-links{font-size:.88rem;white-space:nowrap}
           <p class="lede">Concursos das áreas Tribunal, Fiscal, Controle e Gestão, Policial, Bancária, Legislativa e Administrativa: situação, vagas, salário, banca e inscrições. Atualizado automaticamente duas vezes por dia.</p></div>
         </div>
         <p class="notice" id="conc-notice"><strong>Dados de exemplo.</strong> Substitua pelas informações oficiais de cada edital antes de publicar o site.</p>
-        <a class="cfc-banner" href="#exame-cfc">
-          <span class="cfc-banner-ico" aria-hidden="true">CFC</span>
-          <span class="cfc-banner-txt"><strong>Exame de Suficiência do CFC</strong>
-          <span>Próxima prova, datas, taxa, cronograma, disciplinas e as últimas edições com provas, gabaritos e resultados.</span></span>
-          <span class="cfc-banner-seta" aria-hidden="true">→</span></a>
-        <div class="conc-busca"><label for="conc-busca" class="sr-only">Buscar concurso</label><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="conc-busca" type="search" placeholder="Buscar por órgão, cargo ou banca (ex.: TRT, auditor, Cebraspe)" autocomplete="off"></div>
+                <div class="conc-busca"><label for="conc-busca" class="sr-only">Buscar concurso</label><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="conc-busca" type="search" placeholder="Buscar por órgão, cargo ou banca (ex.: TRT, auditor, Cebraspe)" autocomplete="off"></div>
         <div class="filters" id="conc-areas" role="group" aria-label="Filtrar por área"></div>
         <div class="filters" id="conc-filters" role="group" aria-label="Filtrar por situação"></div>
         <p class="conc-total" id="conc-total" aria-live="polite"></p>
@@ -700,7 +697,7 @@ td.cfc-links{font-size:.88rem;white-space:nowrap}
 <footer>
   <div class="wrap">
     <span>© <span id="ano">2026</span> Rumo à Posse · Goiânia, GO</span>
-    <span><a href="#artigos">Artigos</a> · <a href="#concursos">Concursos</a> · <a href="#materiais">Materiais</a> · <a href="#mesa-de-estudos">Mesa de Estudos</a> · <a href="admin.html" rel="nofollow">Área do autor</a></span>
+    <span><a href="#artigos">Artigos</a> · <a href="#concursos">Concursos</a> · <a href="#exame-cfc">Exame CFC</a> · <a href="#materiais">Materiais</a> · <a href="#mesa-de-estudos">Mesa de Estudos</a> · <a href="admin.html" rel="nofollow">Área do autor</a></span>
   </div>
 </footer>
 
@@ -710,7 +707,7 @@ td.cfc-links{font-size:.88rem;white-space:nowrap}
 <script src="dados-exemplo.js?v=20261119" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js" integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a" crossorigin="anonymous" defer></script>
-<script src="site.js?v=20261120h" defer></script>
+<script src="site.js?v=20261120i" defer></script>
 <script src="interacao.js?v=20261120f" defer></script>
 </body>
 </html>
