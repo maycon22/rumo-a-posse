@@ -45,3 +45,7 @@ $$);
 -- Links das páginas dos concursos nas bancas (preenchidos pela função; Vunesp à mão)
 alter table public.site_concursos add column if not exists links_banca jsonb not null default '[]'::jsonb;
 alter table public.site_concursos add constraint concursos_links_banca_array check (jsonb_typeof(links_banca) = 'array');
+
+-- Ficha completa de cada concurso (fatos extraídos da matéria principal da Folha)
+alter table public.site_concursos add column if not exists detalhes jsonb not null default '{}'::jsonb;
+alter table public.site_concursos add constraint concursos_detalhes_obj check (jsonb_typeof(detalhes) = 'object');

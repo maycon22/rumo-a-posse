@@ -333,12 +333,85 @@ function mostrarConcurso(id){
       <p>${c.situacao==="aberto" ? "As inscrições são feitas no site da banca organizadora. Lá você encontra o edital completo, o formulário de inscrição e os comunicados." : "No site da banca organizadora você encontra o edital completo, os comunicados e as próximas etapas."}</p>
       <div class="conc-acoes">${banca.map((l,i)=>`<a class="btn ${i===0?"marker":"ghost"}" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.rotulo)}${novaAba}</a>`).join("")}</div>
     </div>` : temEdital ? `<p class="banca-box banca-vazia">O link da página do concurso na banca ${esc(c.banca)} ainda não foi localizado. Procure por "${esc(c.orgao)}" no site da banca.</p>` : ""}
-    <div class="conc-acoes">
+    <div id="conc-detalhes" aria-live="polite">${c.chave ? `<div class="skel-text" aria-label="Carregando os detalhes"><i></i><i></i><i></i></div>` : ""}</div>
+    <div class="conc-acoes" id="conc-fonte-btn">
       ${fonte ? `<a class="btn ghost" href="${esc(fonte)}" target="_blank" rel="noopener noreferrer">Notícia completa na Folha Dirigida${novaAba}</a>` : ""}
     </div>
-    <p class="conc-fonte">${fonte ? "Informações reunidas pelo Qconcursos Folha Dirigida" : "Informações cadastradas pelo Rumo à Posse"}${sinc && !isNaN(sinc) && fonte ? `, atualizadas em ${sinc.toLocaleDateString("pt-BR")}` : ""}. Datas e regras podem mudar: confirme sempre no edital oficial.</p>
+    <p class="conc-fonte" id="conc-fonte-txt">${fonte ? "Informações reunidas pelo Qconcursos Folha Dirigida" : "Informações cadastradas pelo Rumo à Posse"}${sinc && !isNaN(sinc) && fonte ? `, atualizadas em ${sinc.toLocaleDateString("pt-BR")}` : ""}. Datas e regras podem mudar: confirme sempre no edital oficial.</p>
     <blockquote><strong>Vai prestar este concurso?</strong> A Mesa de Estudos monta o seu ciclo a partir do edital, cronometra as horas líquidas e agenda as revisões. <a href="#mesa-de-estudos">Conhecer</a></blockquote>
     ${outros.length ? `<section class="related" aria-labelledby="rel-c"><h2 id="rel-c">Outros concursos de ${esc(c.area)}</h2><div class="grid g3">${outros.map(cardConcurso).join("")}</div></section>` : ""}`;
+  if(c.chave) carregarDetalhes(c);
+}
+
+/* ---------- Ficha completa (fatos extraídos da matéria) ---------- */
+const detalhesCache = new Map();
+async function carregarDetalhes(c){
+  const alvo = () => document.getElementById("conc-detalhes");
+  let d = detalhesCache.get(c.chave);
+  if(d === undefined && sb){
+    try{
+      const r = await sb.from("site_concursos").select("detalhes").eq("chave", c.chave).maybeSingle();
+      d = r.data ? r.data.detalhes : null; detalhesCache.set(c.chave, d);
+    }catch(e){ d = null; }
+  }
+  const caixa = alvo(); if(!caixa) return;                    // a pessoa já saiu da página
+  if(!d || (!(d.secoes||[]).length && !(d.ficha||[]).length)){ caixa.innerHTML = ""; return; }
+  caixa.innerHTML = htmlDetalhes(d);
+  // itens extras na ficha principal (taxa, validade, jornada…)
+  const dl = document.querySelector("#concurso-body .ficha");
+  if(dl) dl.insertAdjacentHTML("beforeend", extrasFicha(d));
+  const mat = urlSegura(d.materia_url);
+  if(mat && /folha\.qconcursos\.com\/n\//.test(mat)){
+    const btn = document.querySelector("#conc-fonte-btn a"); if(btn) btn.href = mat;
+    const lido = d.lido_em ? new Date(d.lido_em) : null;
+    const t = document.getElementById("conc-fonte-txt");
+    if(t) t.innerHTML = `Dados levantados da <a href="${esc(mat)}" target="_blank" rel="noopener noreferrer">matéria da Folha Dirigida${novaAba}</a> e organizados pelo Rumo à Posse${lido && !isNaN(lido) ? ` em ${lido.toLocaleDateString("pt-BR")}` : ""}. Datas e regras podem mudar: confirme sempre no edital oficial.`;
+  }
+}
+const JA_NA_FICHA = /^(órg[ãa]o|institui[çc][ãa]o|situa[çc][ãa]o|status|banca|cargos?|escolaridade|vagas|remunera[çc][ãa]o|sal[áa]rios?|inscri[çc][õo]es|provas?|data das? provas?)( (atual|organizadora|inicial))?$/i;
+function extrasFicha(d){
+  const itens = (d.ficha||[]).filter(f => !JA_NA_FICHA.test(f.rotulo.trim())).slice(0,8)
+    .map(f => [f.rotulo, f.valor]);
+  if(d.questoes) itens.push(["Questões na prova objetiva", d.questoes]);
+  if(d.validade) itens.push(["Validade", d.validade]);
+  if(d.jornada) itens.push(["Jornada", d.jornada]);
+  return itens.map(([r,v]) => `<div><dt>${esc(r)}</dt><dd>${esc(v)}</dd></div>`).join("");
+}
+const ORDEM_SECOES = ["cargos","requisitos","remuneracao","inscricao","etapas","prova","taf","datas"];
+function htmlDetalhes(d){
+  const secoes = new Map((d.secoes||[]).map(s => [s.id, s]));
+  // salários e benefícios entram na seção de remuneração; isenção na de inscrição
+  if((d.salarios||[]).length || (d.beneficios||[]).length){
+    const s = secoes.get("remuneracao") || { id:"remuneracao", titulo:"Remuneração e benefícios", grupos:[], tabelas:[] };
+    const grupos = [];
+    if(d.salarios.length) grupos.push({ titulo:"Salário inicial", itens: d.salarios.map(x => `${x.cargo}: ${x.valor}`) });
+    if(d.beneficios.length) grupos.push({ titulo:"Benefícios", itens: d.beneficios.map(x => `${x.nome}: ${x.valor}`) });
+    s.grupos = grupos.concat(s.grupos); secoes.set("remuneracao", s);
+  }
+  if(d.isencao){
+    const s = secoes.get("inscricao") || { id:"inscricao", titulo:"Inscrição e taxa", grupos:[], tabelas:[] };
+    const itens = [];
+    if(d.isencao.periodo) itens.push(`Prazo para pedir: ${d.isencao.periodo}`);
+    d.isencao.publico.forEach(p => itens.push(p));
+    if(!itens.length) itens.push("Há previsão de pedido no edital");
+    s.grupos = [{ titulo: d.isencao.tipo, itens }].concat(s.grupos); secoes.set("inscricao", s);
+  }
+  const lista = ORDEM_SECOES.map(id => secoes.get(id)).filter(Boolean);
+  if(!lista.length) return "";
+  const idSec = id => "sec-" + id;
+  const grupo = g => `<div class="det-grupo">${g.titulo ? `<h3>${esc(g.titulo)}</h3>` : ""}
+    <ul class="${g.itens.length > 8 ? "cols" : ""}">${g.itens.map(i => `<li>${esc(i)}</li>`).join("")}</ul></div>`;
+  const tabela = t => {
+    const [cab, ...linhas] = t.linhas;
+    return `<div class="table-wrap det-tabela"><table><thead><tr>${cab.map(c => `<th scope="col">${esc(c)}</th>`).join("")}</tr></thead>
+      <tbody>${linhas.map(r => `<tr>${r.map(c => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  };
+  return `<nav class="det-sumario" aria-label="Nesta página"><strong>Nesta página:</strong>
+      ${lista.map(s => `<a href="#${idSec(s.id)}" data-scroll="${idSec(s.id)}">${esc(s.titulo)}</a>`).join("")}</nav>
+    ${lista.map(s => `<section class="det-secao" id="${idSec(s.id)}" aria-labelledby="${idSec(s.id)}-h">
+      <h2 id="${idSec(s.id)}-h">${esc(s.titulo)}</h2>
+      ${s.grupos.map(grupo).join("")}${(s.tabelas||[]).map(tabela).join("")}
+    </section>`).join("")}`;
 }
 
 /* ---------- Rotas ---------- */

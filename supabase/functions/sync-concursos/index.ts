@@ -4,6 +4,30 @@
 // e atualiza a tabela site_concursos (somente linhas com origem = 'folha').
 // Roda todo dia pelo pg_cron. Linhas cadastradas à mão no painel não são tocadas.
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
+import { extrairDetalhes, acharMateria, lerIndice } from "./detalhes.ts";
+
+const SITEMAPS = ["https://folha.qconcursos.com/sitemaps/news1.xml.gz", "https://folha.qconcursos.com/daily_sitemap.xml.gz"];
+
+// Usa o resumo da matéria (mais recente que a página-resumo) para atualizar campos defasados
+function atualizarComFicha(l, ficha, hoje) {
+  const pega = (re) => (ficha.find(f => re.test(f.rotulo)) || {}).valor || "";
+  const patch: Record<string, string> = {};
+  const status = pega(/^(situa[çc][ãa]o( atual)?|status)$/i);
+  const insc = pega(/^inscri[çc][õo]es$/i);
+  const provas = pega(/^(provas?|data das? provas?|data da prova objetiva)$/i);
+  const bancaF = pega(/^banca( organizadora)?$/i);
+  const vagas = pega(/^vagas$/i), rem = pega(/^(remunera[çc][ãa]o( inicial)?|sal[áa]rios?( inicial)?)$/i);
+  if (insc && l.inscricoes === "A definir" || insc && !l.inscricoes) patch.inscricoes = cap(insc);
+  if (provas && (!l.provas || l.provas === "A definir")) patch.provas = cap(provas);
+  if (bancaF && l.banca === "A definir" && !/defini/i.test(bancaF)) patch.banca = banca(bancaF);
+  if (vagas && l.vagas === "A definir") patch.vagas = valor(vagas);
+  if (rem && l.salario === "A definir") patch.salario = valor(rem);
+  if (status) {
+    const nova = situacao({ status, inscricoes: patch.inscricoes || l.inscricoes }, hoje);
+    if (PRIORIDADE[nova] < PRIORIDADE[l.situacao]) { patch.situacao = nova; patch.status_fonte = cap(status); }
+  }
+  return patch;
+}
 
 const FONTES = [
   { area: "Tribunais", url: "https://folha.qconcursos.com/n/concursos-tribunais" },
@@ -86,7 +110,7 @@ function datasInscricao(txt, hoje) {
 function situacao(b, hoje) {
   const s = (b.status || "").toLowerCase();
   const insc = datasInscricao(b.inscricoes, hoje);
-  const publicado = /edita(l|is) publicad|inscriç(ões|ão) abert|publicado|aberto/.test(s);
+  const publicado = /edita(l|is) publicad|inscriç(ões|ão) (abert|encerrad)|publicado|aberto|encerrad|homologad|gabarito/.test(s);
   if (publicado) {
     if (insc && hoje <= insc.fim && (!insc.ini || hoje >= new Date(insc.ini.getTime() - 86400000))) return "aberto";
     if (/inscriç(ões|ão) abert/.test(s) && !insc) return "aberto";
@@ -265,6 +289,36 @@ Deno.serve(async (req) => {
     const { error } = await q;
     if (error) return Response.json({ erro: error.message, relatorio }, { status: 500 });
   }
+  // ficha completa: fatos da matéria principal de cada concurso (5 por vez)
+  const paginas = new Map<string, Promise<string>>();
+  const buscar = (u: string) => {
+    if (!paginas.has(u)) paginas.set(u, fetch(u, { headers: UA }).then(r => r.ok ? r.text() : "").catch(() => ""));
+    return paginas.get(u)!;
+  };
+  const indice = await lerIndice(SITEMAPS, async (u) => {
+    try { const r = await fetch(u, { headers: UA }); return r.ok ? new Uint8Array(await r.arrayBuffer()) : null; } catch (_) { return null; }
+  });
+  relatorio.indice_materias = indice.length;
+  let comDetalhes = 0, corrigidos = 0;
+  for (let i = 0; i < todas.length; i += 5) {
+    await Promise.all(todas.slice(i, i + 5).map(async (l) => {
+      try {
+        const materia = acharMateria(l.fonte_url, l.orgao, l.cargo, l.situacao, indice, hoje);
+        if (!materia) return;
+        const html = await buscar(materia);
+        if (!html) return;
+        const d = extrairDetalhes(html, materia);
+        if (!d.ficha.length && !d.secoes.length) return;           // nada útil: mantém o que já havia
+        const patch = atualizarComFicha(l, d.ficha, hoje);
+        if (Object.keys(patch).length) { corrigidos++; Object.assign(l, patch); }
+        await sb.from("site_concursos").update({ ...patch, detalhes: { ...d, lido_em: hoje.toISOString() } }).eq("chave", l.chave);
+        comDetalhes++;
+      } catch (_) { /* segue para o próximo */ }
+    }));
+  }
+  relatorio.com_detalhes = comDetalhes;
+  relatorio.atualizados_pela_materia = corrigidos;
+
   // links das bancas para concursos com edital publicado
   const comEdital = todas.filter(l => l.situacao === "aberto" || l.situacao === "edital");
   const links: Record<string, number> = {};
@@ -278,6 +332,7 @@ Deno.serve(async (req) => {
     }
   }
   relatorio.links_banca = links;
+
 
   await sb.from("site_config").upsert({ chave: "concursos_sincronizado_em", valor: hoje.toISOString() });
   return Response.json({ ok: true, total: todas.length, relatorio });
