@@ -24,15 +24,21 @@ function atualizarComFicha(l, ficha, hoje) {
   if (rem && l.salario === "A definir") patch.salario = valor(rem);
   if (status) {
     const nova = situacao({ status, inscricoes: patch.inscricoes || l.inscricoes }, hoje);
-    if (PRIORIDADE[nova] < PRIORIDADE[l.situacao]) { patch.situacao = nova; patch.status_fonte = cap(status); }
+    if (PRIORIDADE[nova] < PRIORIDADE[l.situacao] || !l.status_fonte) { patch.situacao = nova; patch.status_fonte = cap(status); }
   }
   return patch;
 }
 
+// id: entra no endereço do concurso (não muda); area: nome exibido no site.
+// A ordem define a prioridade quando o mesmo órgão aparece em duas áreas (fica na mais específica).
 const FONTES = [
-  { area: "Tribunais", url: "https://folha.qconcursos.com/n/concursos-tribunais" },
-  { area: "Fiscal",    url: "https://folha.qconcursos.com/n/concursos-fiscais" },
-  { area: "Controle",  url: "https://folha.qconcursos.com/n/concursos-controle" },
+  { id: "tribunais",      area: "Tribunal",          url: "https://folha.qconcursos.com/n/concursos-tribunais" },
+  { id: "fiscal",         area: "Fiscal",            url: "https://folha.qconcursos.com/n/concursos-fiscais" },
+  { id: "controle",       area: "Controle e Gestão", url: "https://folha.qconcursos.com/n/concursos-controle" },
+  { id: "policial",       area: "Policial",          url: "https://folha.qconcursos.com/n/concursos-policiais" },
+  { id: "bancaria",       area: "Bancária",          url: "https://folha.qconcursos.com/n/concursos-bancarios" },
+  { id: "legislativa",    area: "Legislativa",       url: "https://folha.qconcursos.com/n/concursos-legislativo" },
+  { id: "administrativa", area: "Administrativa",    url: "https://folha.qconcursos.com/n/concursos-administrativos" },
 ];
 
 // ---- PARSER (início) ----
@@ -121,7 +127,7 @@ function situacao(b, hoje) {
 }
 
 const cap = s => { s = String(s || "").trim().replace(/\.$/, ""); return s ? s[0].toUpperCase() + s.slice(1) : ""; };
-const valor = s => /^(não definid|nao definid|indefinid|a definir)/i.test(String(s || "").trim()) ? "A definir" : cap(s);
+const valor = s => /^(não definid|nao definid|indefinid|a definir|a confirmar|não informad|nao informad)/i.test(String(s || "").trim()) ? "A definir" : cap(s);
 function escolaridade(t) {
   const s = (t || "").toLowerCase();
   const m = /médio/.test(s), sup = /superior/.test(s), tec = /técnic/.test(s);
@@ -131,22 +137,24 @@ function escolaridade(t) {
   return "A definir";
 }
 function banca(t) {
-  const s = cap(t);
-  return !s || /^(a definir|não definida|indefinida|em definição)/i.test(s) ? "A definir" : s;
+  const s = cap(String(t || "").split(/[;,]\s| \(com /)[0]);
+  return !s || /^(a definir|a confirmar|não definida|indefinida|em definição|em processo|em escolha|não informad)/i.test(s) ? "A definir" : s;
 }
 function sigla(titulo, orgao) {
-  const t = String(titulo || "").replace(/^concursos?\s+/i, "").trim();
+  const t = String(titulo || "").replace(/^(resumo d[oa]s?\s+)?(novo\s+)?concursos?\s+/i, "").trim();
   return t && t.length <= 40 ? t : orgao;
 }
 function slug(s) {
   return String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
-function paraLinha(b, area, paginaFonte, hoje) {
+// link específico do concurso (matéria "concurso-..." ou página do órgão); links para outras páginas-resumo não servem
+const fonteBoa = (u) => !!u && (/\/e\/[a-z0-9-]+$/.test(u) || /\/n\/concurso-[a-z0-9-]+$/.test(u)) && !/como-estudar|guia|gratis|caderno|questoes/.test(u);
+function paraLinha(b, area, paginaFonte, hoje, id = slug(area)) {
   const orgaoCurto = sigla(b.titulo, b.orgao);
   const cargo = valor(b.cargo) || "A definir";
   return {
-    chave: `folha:${slug(area)}:${slug(orgaoCurto)}:${slug(cargo).slice(0, 60)}`,
+    chave: `folha:${id}:${slug(orgaoCurto)}:${slug(cargo).slice(0, 60)}`,
     origem: "folha",
     area,
     orgao: orgaoCurto,
@@ -160,7 +168,7 @@ function paraLinha(b, area, paginaFonte, hoje) {
     escolaridade: escolaridade(b.escolaridade),
     inscricoes: valor(b.inscricoes),
     provas: valor(b.provas),
-    fonte_url: b.fonte_url || paginaFonte,
+    fonte_url: fonteBoa(b.fonte_url) ? b.fonte_url : paginaFonte,
     // "publicado" não é enviado: novos entram publicados (padrão do banco) e,
     // se você despublicar um no painel, ele continua escondido nas próximas atualizações
   };
@@ -174,7 +182,7 @@ function paraLinha(b, area, paginaFonte, hoje) {
 const norm = s => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/ª/g, "a").replace(/º/g, "o")
   .toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 const UA = { "User-Agent": "RumoAPosseBot/1.0 (+https://maycon22.github.io/rumo-a-posse/)" };
-const DOMINIOS_BANCA = /(^|\.)(vunesp\.com\.br|concursosfcc\.com\.br|cebraspe\.org\.br|fgv\.br|cesgranrio\.org\.br|ibfc\.org\.br|institutoaocp\.org\.br|idecan\.org\.br|quadrix\.org\.br|consulplan\.net|ibade\.org\.br|fundatec\.org\.br|iades\.com\.br|selecon\.org\.br|avalia\.org\.br|ibam-concursos\.org\.br|institutoconsulplan\.org\.br|fepese\.org\.br|objetivas\.com\.br|legalleconcursos\.com\.br|institutoibest\.org\.br|cetrede\.com\.br|funcab\.org|ufpr\.br|fundep\.ufmg\.br|amauc\.org\.br|cs\.ufgd\.edu\.br)$/i;
+const DOMINIOS_BANCA = /(^|\.)(vunesp\.com\.br|concursosfcc\.com\.br|cebraspe\.org\.br|fgv\.br|cesgranrio\.org\.br|ibfc\.org\.br|institutoaocp\.org\.br|idecan\.org\.br|quadrix\.org\.br|consulplan\.net|ibade\.org\.br|fundatec\.org\.br|iades\.com\.br|selecon\.org\.br|avalia\.org\.br|ibam-concursos\.org\.br|institutoconsulplan\.org\.br|fepese\.org\.br|objetivas\.com\.br|legalleconcursos\.com\.br|institutoibest\.org\.br|cetrede\.com\.br|funcab\.org|ufpr\.br|fundep\.ufmg\.br|amauc\.org\.br|cs\.ufgd\.edu\.br|institutoaccess\.org\.br|cetapnet\.com\.br|seletiva\.org\.br)$/i;
 const GENERICOS = /inscricaoaberta|inscricoesabertas|andamento|proximos|\/busca|\/$|index\.php$/i;
 
 async function listaFCC() {
@@ -232,7 +240,7 @@ async function linksBanca(l, fcc, ceb) {
       return achou.filter(e => e.ano === ano).slice(0, 3).map(e => ({ rotulo: `Página do concurso no Cebraspe (${e.nome})`, url: e.url }));
     }
   }
-  const daMateria = await linksDaMateria(l.fonte_url);
+  const daMateria = await linksDaMateria(l.materia_url || l.fonte_url);
   return daMateria.map(rot);
 }
 // ---- LINKS DAS BANCAS (fim) ----
@@ -248,18 +256,18 @@ Deno.serve(async (req) => {
 
   const hoje = new Date();
   const relatorio: Record<string, unknown> = {};
-  const todas: ReturnType<typeof paraLinha>[] = [];
+  const todas = [];
   const areasOk: string[] = [];
 
-  for (const f of FONTES) {
+  await Promise.all(FONTES.map(async (f) => {
     try {
-      const r = await fetch(f.url, { headers: { "User-Agent": "RumoAPosseBot/1.0 (+https://maycon22.github.io/rumo-a-posse/)" } });
+      const r = await fetch(f.url, { headers: UA });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const blocos = extrair(await r.text());
       if (blocos.length < 2) throw new Error(`só ${blocos.length} concurso(s) encontrado(s); formato da página pode ter mudado`);
       const vistos = new Map<string, string>();
       for (const b of blocos) {
-        const l = paraLinha(b, f.area, f.url, hoje);
+        const l = paraLinha(b, f.area, f.url, hoje, f.id);
         const { fonte_url: _f, ...semLink } = b;
         const assinatura = JSON.stringify(semLink);
         if (vistos.get(l.chave) === assinatura) continue;          // bloco repetido na página
@@ -272,9 +280,27 @@ Deno.serve(async (req) => {
     } catch (e) {
       relatorio[f.area] = `erro: ${(e as Error).message}`;   // mantém os dados anteriores dessa área
     }
-  }
+  }));
 
-  todas.sort((a, b) => PRIORIDADE[a.situacao] - PRIORIDADE[b.situacao] || a.area.localeCompare(b.area) || a.orgao.localeCompare(b.orgao));
+  // mesmo órgão em duas áreas: fica na mais específica (ordem de FONTES) e herda o que a outra sabia a mais
+  const ordemArea = (a) => FONTES.findIndex(f => f.area === a);
+  const porOrgao = new Map();
+  const unicas = [];
+  for (const l of [...todas].sort((a, b) => ordemArea(a.area) - ordemArea(b.area))) {
+    const k = slug(l.orgao);
+    const ja = porOrgao.get(k);
+    if (!ja) { porOrgao.set(k, l); unicas.push(l); continue; }
+    if (ja.area === l.area) { unicas.push(l); continue; }              // dois concursos do mesmo órgão na mesma área
+    for (const c of ["banca", "vagas", "salario", "inscricoes", "provas", "cargo", "escolaridade"])
+      if ((!ja[c] || ja[c] === "A definir") && l[c] && l[c] !== "A definir") ja[c] = l[c];
+    if (PRIORIDADE[l.situacao] < PRIORIDADE[ja.situacao]) { ja.situacao = l.situacao; ja.status_fonte = l.status_fonte; }
+    if (!ja.status_fonte && l.status_fonte) ja.status_fonte = l.status_fonte;
+    if (ja.fonte_url.includes("/n/concursos-") && !l.fonte_url.includes("/n/concursos-")) ja.fonte_url = l.fonte_url;
+  }
+  relatorio.duplicados_unidos = todas.length - unicas.length;
+  todas.length = 0; todas.push(...unicas);
+
+  todas.sort((a, b) => PRIORIDADE[a.situacao] - PRIORIDADE[b.situacao] || ordemArea(a.area) - ordemArea(b.area) || a.orgao.localeCompare(b.orgao));
   todas.forEach((l, i) => Object.assign(l, { ordem: 100 + i }));
 
   if (todas.length) {
@@ -284,7 +310,8 @@ Deno.serve(async (req) => {
   // remove concursos que saíram da fonte (só das áreas lidas com sucesso)
   if (areasOk.length) {
     const atuais = todas.map(l => l.chave);
-    let q = sb.from("site_concursos").delete().eq("origem", "folha").in("area", areasOk);
+    const ids = FONTES.filter(f => areasOk.includes(f.area)).map(f => f.id);
+    let q = sb.from("site_concursos").delete().eq("origem", "folha").or(ids.map(id => `chave.like.folha:${id}:*`).join(","));
     if (atuais.length) q = q.not("chave", "in", `(${atuais.map(c => `"${c}"`).join(",")})`);
     const { error } = await q;
     if (error) return Response.json({ erro: error.message, relatorio }, { status: 500 });
@@ -300,8 +327,8 @@ Deno.serve(async (req) => {
   });
   relatorio.indice_materias = indice.length;
   let comDetalhes = 0, corrigidos = 0;
-  for (let i = 0; i < todas.length; i += 5) {
-    await Promise.all(todas.slice(i, i + 5).map(async (l) => {
+  for (let i = 0; i < todas.length; i += 8) {
+    await Promise.all(todas.slice(i, i + 8).map(async (l) => {
       try {
         const materia = acharMateria(l.fonte_url, l.orgao, l.cargo, l.situacao, indice, hoje);
         if (!materia) return;
@@ -311,6 +338,7 @@ Deno.serve(async (req) => {
         if (!d.ficha.length && !d.secoes.length) return;           // nada útil: mantém o que já havia
         const patch = atualizarComFicha(l, d.ficha, hoje);
         if (Object.keys(patch).length) { corrigidos++; Object.assign(l, patch); }
+        l.materia_url = materia;
         await sb.from("site_concursos").update({ ...patch, detalhes: { ...d, lido_em: hoje.toISOString() } }).eq("chave", l.chave);
         comDetalhes++;
       } catch (_) { /* segue para o próximo */ }
@@ -324,12 +352,12 @@ Deno.serve(async (req) => {
   const links: Record<string, number> = {};
   if (comEdital.length) {
     const [fcc, ceb] = await Promise.all([listaFCC(), listaCebraspe()]);
-    for (const l of comEdital) {
+    await Promise.all(comEdital.map(async (l) => {
       const achados = await linksBanca(l, fcc, ceb);
       links[l.orgao] = achados.length;
       // sem resultado, mantém o que já estava (ex.: links da Vunesp cadastrados à mão)
       if (achados.length) await sb.from("site_concursos").update({ links_banca: achados }).eq("chave", l.chave);
-    }
+    }));
   }
   relatorio.links_banca = links;
 

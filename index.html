@@ -379,6 +379,18 @@ details[open] summary::after{transform:rotate(45deg)}
   .app-mock.parado .prog i,.app-mock.parado .week span{width:auto!important;height:auto!important}
   .card:hover,.card.reveal.in:hover,.btn:hover,.card:active{transform:none!important}
 }
+
+/* Concursos organizados por área */
+.conc-busca{position:relative;margin:0 0 14px;max-width:560px}
+.conc-busca svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.conc-busca input{width:100%;font:inherit;padding:12px 14px 12px 42px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);transition:border-color .2s,box-shadow .2s}
+.conc-busca input:focus{outline:none;border-color:var(--marker);box-shadow:0 0 0 4px color-mix(in srgb,var(--marker) 25%,transparent)}
+.chip-n{display:inline-block;min-width:1.6em;padding:0 6px;margin-left:4px;border-radius:999px;font-size:.78rem;font-weight:700;background:color-mix(in srgb,var(--ink) 10%,transparent);text-align:center}
+.chip[aria-pressed="true"] .chip-n{background:color-mix(in srgb,var(--paper) 25%,transparent)}
+#conc-areas .chip[aria-pressed="true"] .chip-n{background:color-mix(in srgb,var(--marker-ink) 15%,transparent)}
+tr.grupo-area th{background:color-mix(in srgb,var(--marker) 14%,var(--card));color:var(--ink);font-family:var(--font-display);font-size:1.05rem;letter-spacing:0;text-transform:none;padding:12px 16px;border-top:2px solid var(--marker)}
+tr.grupo-area .grupo-n{font-family:var(--font-body);font-size:.82rem;font-weight:600;color:var(--muted);margin-left:8px}
+tbody tr.grupo-area:hover{background:transparent}
 </style>
 </head>
 <body>
@@ -497,10 +509,11 @@ details[open] summary::after{transform:rotate(45deg)}
       <div class="wrap">
         <div class="section-head">
           <div><span class="eyebrow">Radar de concursos</span><h2>Concursos abertos e previstos</h2>
-          <p class="lede">Concursos das carreiras fiscal, de controle e de tribunais: situação, vagas, salário, banca e inscrições. Atualizado automaticamente duas vezes por dia.</p></div>
+          <p class="lede">Concursos das áreas Tribunal, Fiscal, Controle e Gestão, Policial, Bancária, Legislativa e Administrativa: situação, vagas, salário, banca e inscrições. Atualizado automaticamente duas vezes por dia.</p></div>
         </div>
         <p class="notice" id="conc-notice"><strong>Dados de exemplo.</strong> Substitua pelas informações oficiais de cada edital antes de publicar o site.</p>
-        <div class="filters" id="conc-areas" role="group" aria-label="Filtrar por carreira"></div>
+        <div class="conc-busca"><label for="conc-busca" class="sr-only">Buscar concurso</label><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="conc-busca" type="search" placeholder="Buscar por órgão, cargo ou banca (ex.: TRT, auditor, Cebraspe)" autocomplete="off"></div>
+        <div class="filters" id="conc-areas" role="group" aria-label="Filtrar por área"></div>
         <div class="filters" id="conc-filters" role="group" aria-label="Filtrar por situação"></div>
         <p class="conc-total" id="conc-total" aria-live="polite"></p>
         <div class="table-wrap">
@@ -641,7 +654,7 @@ details[open] summary::after{transform:rotate(45deg)}
 <script src="dados-exemplo.js?v=20261119" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js" integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a" crossorigin="anonymous" defer></script>
-<script src="site.js?v=20261120e" defer></script>
-<script src="interacao.js?v=20261120e" defer></script>
+<script src="site.js?v=20261120f" defer></script>
+<script src="interacao.js?v=20261120f" defer></script>
 </body>
 </html>

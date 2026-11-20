@@ -210,7 +210,7 @@ const NAO_PRINCIPAL = /verticalizado|caderno|questoes|raio-x|guia|gratis|como-es
 // Escolhe a matéria principal: o link específico da página-resumo, ou a mais recente do órgão no índice.
 export function acharMateria(fonteUrl: string, sigla: string, cargo: string, situacao: string, indice: Indice, hoje: Date): string | null {
   const publicado = situacao === "aberto" || situacao === "edital";
-  if (/\/n\/[a-z0-9-]+$/.test(fonteUrl) && !/\/n\/concursos-(tribunais|fiscais|controle)$/.test(fonteUrl)) return fonteUrl;
+  if (/\/n\/concurso-[a-z0-9-]+$/.test(fonteUrl) && !NAO_PRINCIPAL.test(fonteUrl)) return fonteUrl;
   const base = sigla.split(/\s+-\s+/)[0].toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   const prefixos = [base];
   const semUf = base.replace(/-(ac|al|am|ap|ba|ce|df|es|go|ma|mg|ms|mt|pa|pb|pe|pi|pr|rj|rn|ro|rr|rs|sc|se|sp|to)$/, "");

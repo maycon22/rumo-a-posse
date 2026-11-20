@@ -46,7 +46,7 @@
         it.target.classList.add("in");
         io.unobserve(it.target);
       }
-    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+    }, { rootMargin: "0px 0px -6% 0px", threshold: 0 });   // 0: elementos altos (tabelas longas) também entram
   }
   function preparar(raiz) {
     if (!io) return;

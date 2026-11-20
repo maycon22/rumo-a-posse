@@ -45,7 +45,7 @@ const ENT = {
   concursos:{
     nome:"Concursos", tabela:"site_concursos", ordem:[["ordem",true],["atualizado_em",false]],
     titulo:r=>r.orgao, sub:r=>`${r.area?r.area+" · ":""}${r.cargo} · ${(SITUACOES.find(s=>s[0]===r.situacao)||[,""])[1]}${r.origem==="folha"?" · automático":""}`,
-    novo:()=>({orgao:"",cargo:"",area:"Tribunais",situacao:"previsto",vagas:"A definir",salario:"A definir",banca:"A definir",escolaridade:"Superior",link_edital:"",ordem:0,publicado:true}),
+    novo:()=>({orgao:"",cargo:"",area:"Tribunal",situacao:"previsto",vagas:"A definir",salario:"A definir",banca:"A definir",escolaridade:"Superior",link_edital:"",ordem:0,publicado:true}),
     campos:[
       {k:["orgao","cargo"]},
       {k:"orgao",label:"Órgão",tipo:"text",req:true},
@@ -56,7 +56,7 @@ const ENT = {
       {k:["vagas","salario"]},
       {k:"vagas",label:"Vagas",tipo:"text"},
       {k:"salario",label:"Salário inicial",tipo:"text",help:"Ex.: R$ 9.800,00"},
-      {k:"area",label:"Carreira",tipo:"select",opts:[["Tribunais","Tribunais"],["Fiscal","Fiscal"],["Controle","Controle"],["","Outra"]]},
+      {k:"area",label:"Área",tipo:"select",opts:[["Tribunal","Tribunal"],["Fiscal","Fiscal"],["Controle e Gestão","Controle e Gestão"],["Policial","Policial"],["Bancária","Bancária"],["Legislativa","Legislativa"],["Administrativa","Administrativa"],["","Outra"]]},
       {k:["banca","ordem"]},
       {k:"banca",label:"Banca",tipo:"text"},
       {k:"ordem",label:"Posição na lista",tipo:"number",help:"Menor número aparece primeiro."},

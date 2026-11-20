@@ -42,7 +42,8 @@ const limpa = html => window.DOMPurify
 /* ---------- Dados ---------- */
 function lerCache(){ try{ return JSON.parse(localStorage.getItem(CACHE_KEY)); }catch(e){ return null; } }
 function gravarCache(d){ try{ localStorage.setItem(CACHE_KEY, JSON.stringify(d)); }catch(e){} }
-function aplicar(d){ ARTIGOS=d.artigos; CONCURSOS=d.concursos; PRODUTOS=d.produtos; CFG=d.config; MODO_EXEMPLO=!!d.exemplo; }
+function aplicar(d){ ARTIGOS=d.artigos;
+  CONCURSOS=(d.concursos||[]).map(c=>({...c, status_fonte:String(c.status_fonte||"").replace(/[\s;,.]+$/,"")})); PRODUTOS=d.produtos; CFG=d.config; MODO_EXEMPLO=!!d.exemplo; }
 
 async function buscarSupabase(){
   const [a,k,p,g] = await Promise.all([
@@ -117,10 +118,22 @@ function cardProduto(p){
     ${botaoCompra(p.link_checkout, "Comprar", "small")}</div></div>`;
 }
 
-function filtros(el, opcoes, onPick){
+/* Ordem das carreiras na aba Concursos */
+const AREAS_ORDEM = ["Tribunal","Fiscal","Controle e Gestão","Policial","Bancária","Legislativa","Administrativa"];
+function ordemAreas(lista){
+  const grupos = new Map();
+  for(const c of lista){ const a = c.area || ""; if(!grupos.has(a)) grupos.set(a, []); grupos.get(a).push(c); }
+  const pos = a => { const i = AREAS_ORDEM.indexOf(a); return i < 0 ? 99 : i; };
+  return [...grupos].sort((x,y)=>pos(x[0])-pos(y[0]));
+}
+
+function filtros(el, opcoes, onPick, contar){
   let atual = "Todos";
   const render = () => {
-    el.innerHTML = ["Todos",...opcoes].map(o=>`<button type="button" class="chip" aria-pressed="${o===atual}" data-v="${esc(o)}">${esc(o)}</button>`).join("");
+    el.innerHTML = ["Todos",...opcoes].map(o=>{
+      const n = contar ? contar(o) : null;
+      return `<button type="button" class="chip" aria-pressed="${o===atual}" data-v="${esc(o)}">${esc(o)}${n!=null?` <span class="chip-n">${n}</span>`:""}</button>`;
+    }).join("");
   };
   el.onclick = e => {
     const b = e.target.closest(".chip"); if(!b) return;
@@ -140,24 +153,38 @@ function renderTudo(){
   filtros($("#art-filters"), [...new Set(ARTIGOS.map(a=>a.categoria))], cat=>{
     $("#all-articles").innerHTML = ARTIGOS.filter(a=>cat==="Todos"||a.categoria===cat).map(cardArtigo).join("") || vazio("Nenhum artigo nesta categoria.");
   });
-  // dois filtros combinados: carreira e situação
-  const fc = { area:"Todos", sit:"Todos" };
-  const tabela = () => {
-    const linhas = CONCURSOS.filter(c=>(fc.area==="Todos"||c.area===fc.area) && (fc.sit==="Todos"||SITUACOES[c.situacao]===fc.sit)).map(c=>{
-      const links = linksConcurso(c);
-      const insc = c.inscricoes && c.inscricoes!=="A definir" ? `<span class="sub">Inscrições: ${esc(c.inscricoes)}</span>` : "";
-      return `<tr><th scope="row"><strong title="${esc(c.orgao_nome||"")}">${esc(c.orgao)}</strong>${c.area?` <span class="tag">${esc(c.area)}</span>`:""}
+  // três filtros combinados: carreira, situação e busca por texto; lista agrupada por carreira
+  const fc = { area:"Todos", sit:"Todos", busca:"" };
+  const semAcento = t => String(t||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+  const linhaConcurso = (c, mostrarArea) => {
+    const links = linksConcurso(c);
+    const insc = c.inscricoes && c.inscricoes!=="A definir" ? `<span class="sub">Inscrições: ${esc(c.inscricoes)}</span>` : "";
+    return `<tr><th scope="row"><strong title="${esc(c.orgao_nome||"")}">${esc(c.orgao)}</strong>${mostrarArea && c.area?` <span class="tag">${esc(c.area)}</span>`:""}
       <span class="sub">${esc(c.cargo)}</span>${links ? `<span class="conc-links">${links}</span>` : ""}</th>
       <td><span class="status s-${esc(c.situacao)}">${SITUACOES[c.situacao]||""}</span>${insc}</td>
       <td class="num">${esc(c.vagas)}</td><td class="num">${esc(c.salario)}</td>
-      <td>${esc(c.banca)}</td><td>${esc(c.escolaridade)}</td></tr>`;}).join("");
-    $("#conc-body").innerHTML = linhas || `<tr><td colspan="6" style="color:var(--muted)">Nenhum concurso com esses filtros.</td></tr>`;
-    $("#conc-total").textContent = `${CONCURSOS.length ? linhas.split("<tr>").length-1 : 0} concurso(s)`;
+      <td>${esc(c.banca)}</td><td>${esc(c.escolaridade)}</td></tr>`;
   };
-  const areas = [...new Set(CONCURSOS.map(c=>c.area).filter(Boolean))];
+  const tabela = () => {
+    const termo = semAcento(fc.busca.trim());
+    const lista = CONCURSOS.filter(c=>(fc.area==="Todos"||c.area===fc.area) && (fc.sit==="Todos"||SITUACOES[c.situacao]===fc.sit) &&
+      (!termo || semAcento([c.orgao,c.orgao_nome,c.cargo,c.banca,c.area].join(" ")).includes(termo)));
+    let html;
+    if(fc.area === "Todos" && areas.length){
+      // agrupado: cada carreira com cabeçalho e contagem
+      html = ordemAreas(lista).map(([area, itens]) => `<tr class="grupo-area"><th colspan="6" scope="colgroup">
+          <span>${esc(area || "Outros")}</span> <span class="grupo-n">${itens.length} concurso${itens.length>1?"s":""}</span></th></tr>
+        ${itens.map(c=>linhaConcurso(c,false)).join("")}`).join("");
+    } else html = lista.map(c=>linhaConcurso(c, fc.area==="Todos")).join("");
+    $("#conc-body").innerHTML = html || `<tr><td colspan="6" style="color:var(--muted)">Nenhum concurso com esses filtros${termo?` para "${esc(fc.busca)}"`:""}.</td></tr>`;
+    $("#conc-total").textContent = `${lista.length} de ${CONCURSOS.length} concurso(s)`;
+  };
+  const areas = AREAS_ORDEM.filter(a=>CONCURSOS.some(c=>c.area===a)).concat([...new Set(CONCURSOS.map(c=>c.area).filter(a=>a && !AREAS_ORDEM.includes(a)))]);
   $("#conc-areas").hidden = !areas.length;
-  filtros($("#conc-areas"), areas, a=>{ fc.area=a; tabela(); });
-  filtros($("#conc-filters"), Object.values(SITUACOES), s=>{ fc.sit=s; tabela(); });
+  filtros($("#conc-areas"), areas, a=>{ fc.area=a; tabela(); }, a=>a==="Todos"?CONCURSOS.length:CONCURSOS.filter(c=>c.area===a).length);
+  filtros($("#conc-filters"), Object.values(SITUACOES), s=>{ fc.sit=s; tabela(); }, s=>s==="Todos"?null:CONCURSOS.filter(c=>SITUACOES[c.situacao]===s).length);
+  const busca = $("#conc-busca");
+  if(busca){ busca.value = ""; busca.oninput = () => { fc.busca = busca.value; tabela(); }; }
   const sinc = CFG.concursos_sincronizado_em ? new Date(CFG.concursos_sincronizado_em) : null;
   $("#conc-fonte").innerHTML = areas.length
     ? `Fonte: <a href="https://folha.qconcursos.com/" target="_blank" rel="noopener noreferrer">Qconcursos Folha Dirigida${novaAba}</a>${sinc && !isNaN(sinc) ? `, atualizado em ${sinc.toLocaleDateString("pt-BR")} às ${sinc.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}` : ""}. Confirme sempre as datas e regras no edital oficial.`
@@ -224,7 +251,7 @@ function definirSEO({titulo, descricao=DESC_PADRAO, url=BASE, imagem="", tipo="w
 const SEO_VIEWS = {
   inicio:   {},
   artigos:  {titulo:"Artigos sobre estudos para concursos", descricao:"Método, organização, revisões e técnicas de memorização aplicadas ao estudo para concursos públicos."},
-  concursos:{titulo:"Concursos abertos e previstos", descricao:"Radar de concursos: situação de cada certame, vagas, salário inicial, banca e escolaridade."},
+  concursos:{titulo:"Concursos abertos e previstos", descricao:"Radar de concursos das áreas Tribunal, Fiscal, Controle e Gestão, Policial, Bancária, Legislativa e Administrativa: situação, vagas, salário, banca e inscrições."},
   materiais:{titulo:"Materiais para concursos", descricao:"Resumos, mapas mentais e cadernos de questões em PDF para concursos públicos."},
   "mesa-de-estudos":{titulo:"Mesa de Estudos", descricao:"Ciclo de estudos, cronômetro de horas líquidas, revisões programadas e desempenho em questões num só lugar."},
   sobre:    {titulo:"Sobre", descricao:"Quem escreve o Rumo à Posse e como entrar em contato."}
