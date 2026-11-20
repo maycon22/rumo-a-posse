@@ -217,7 +217,18 @@ footer a{color:var(--muted)}
 .skip{position:absolute;left:12px;top:-60px;z-index:60;background:var(--marker);color:var(--marker-ink);font-weight:700;padding:10px 16px;border-radius:10px;text-decoration:none}
 .skip:focus{top:12px}
 h1:focus,h2:focus,main:focus{outline:none}
-th[scope="row"]{font-weight:400}
+tbody th[scope="row"]{font-weight:400;font-size:inherit;text-transform:none;letter-spacing:0;color:var(--ink);background:transparent;min-width:220px}
+tbody th[scope="row"] strong{font-size:1rem}
+tbody th .tag{margin-left:6px;vertical-align:1px;font-size:.7rem;padding:1px 8px}
+td .sub,th .sub{display:block;color:var(--muted);font-size:.86rem;margin-top:2px}
+td.num{white-space:normal;min-width:170px;max-width:260px;font-size:.92rem}
+.conc-links{display:block;margin-top:6px;font-weight:600;font-size:.88rem}
+.card .conc-links{margin-top:auto}
+.card-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+#conc-areas{margin-bottom:8px}
+#conc-areas .chip[aria-pressed="true"]{background:var(--marker);color:var(--marker-ink);border-color:var(--marker)}
+.conc-total{margin:-8px 0 12px;color:var(--muted);font-size:.88rem}
+.conc-fonte{margin:12px 0 0;color:var(--muted);font-size:.85rem}
 .news .consent{flex-basis:100%;font-size:.82rem;margin:0;opacity:.85}
 .news input[aria-invalid="true"]{border-color:#c0362c}
 
@@ -355,10 +366,12 @@ th[scope="row"]{font-weight:400}
       <div class="wrap">
         <div class="section-head">
           <div><span class="eyebrow">Radar de concursos</span><h2>Concursos abertos e previstos</h2>
-          <p class="lede">Situação de cada certame, vagas, salário inicial e banca.</p></div>
+          <p class="lede">Concursos das carreiras fiscal, de controle e de tribunais: situação, vagas, salário, banca e inscrições. Atualizado automaticamente duas vezes por dia.</p></div>
         </div>
         <p class="notice" id="conc-notice"><strong>Dados de exemplo.</strong> Substitua pelas informações oficiais de cada edital antes de publicar o site.</p>
+        <div class="filters" id="conc-areas" role="group" aria-label="Filtrar por carreira"></div>
         <div class="filters" id="conc-filters" role="group" aria-label="Filtrar por situação"></div>
+        <p class="conc-total" id="conc-total" aria-live="polite"></p>
         <div class="table-wrap">
           <table>
             <caption class="sr-only">Concursos acompanhados, com situação, vagas, salário, banca e escolaridade</caption>
@@ -366,6 +379,7 @@ th[scope="row"]{font-weight:400}
             <tbody id="conc-body"></tbody>
           </table>
         </div>
+        <p class="conc-fonte" id="conc-fonte"></p>
       </div>
     </section>
   </div>
@@ -489,6 +503,6 @@ th[scope="row"]{font-weight:400}
 <script src="dados-exemplo.js?v=20261119" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js" integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a" crossorigin="anonymous" defer></script>
-<script src="site.js?v=20261119b" defer></script>
+<script src="site.js?v=20261120" defer></script>
 </body>
 </html>

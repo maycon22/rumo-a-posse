@@ -44,7 +44,7 @@ function aplicar(d){ ARTIGOS=d.artigos; CONCURSOS=d.concursos; PRODUTOS=d.produt
 async function buscarSupabase(){
   const [a,k,p,g] = await Promise.all([
     sb.from("site_artigos").select(COLS_ARTIGO).eq("publicado",true).order("data_publicacao",{ascending:false}),
-    sb.from("site_concursos").select("orgao,cargo,situacao,vagas,salario,banca,escolaridade,link_edital").eq("publicado",true).order("ordem").order("atualizado_em",{ascending:false}),
+    sb.from("site_concursos").select("orgao,orgao_nome,area,cargo,situacao,vagas,salario,banca,escolaridade,inscricoes,provas,link_edital,fonte_url").eq("publicado",true).order("ordem").order("atualizado_em",{ascending:false}),
     sb.from("site_produtos").select("titulo,tipo,cor,imagem,preco,preco_antigo,itens,link_checkout").eq("publicado",true).order("ordem"),
     sb.from("site_config").select("chave,valor")
   ]);
@@ -78,12 +78,22 @@ function cardArtigo(a){
     <p>${esc(a.resumo)}</p>
     <div class="meta"><time datetime="${esc(a.data_publicacao)}">${fmtData(a.data_publicacao)}</time><span>${esc(a.minutos)} min de leitura</span></div></article>`;
 }
+const novaAba = `<span class="sr-only"> (abre em nova aba)</span>`;
+function linksConcurso(c){
+  const edital = urlSegura(c.link_edital), fonte = urlSegura(c.fonte_url);
+  return [
+    edital ? `<a href="${esc(edital)}" target="_blank" rel="noopener noreferrer">Edital${novaAba}</a>` : "",
+    fonte ? `<a href="${esc(fonte)}" target="_blank" rel="noopener noreferrer">Detalhes<span class="sr-only"> de ${esc(c.orgao)} na Folha Dirigida</span>${novaAba}</a>` : ""
+  ].filter(Boolean).join(" · ");
+}
 function cardConcurso(c){
-  const link = urlSegura(c.link_edital);
-  return `<div class="card"><span class="status s-${esc(c.situacao)}">${SITUACOES[c.situacao]||""}</span>
-    <h3>${esc(c.orgao)}</h3><p>${esc(c.cargo)}</p>
+  const links = linksConcurso(c);
+  return `<div class="card">
+    <div class="card-top"><span class="status s-${esc(c.situacao)}">${SITUACOES[c.situacao]||""}</span>${c.area?`<span class="tag">${esc(c.area)}</span>`:""}</div>
+    <h3 title="${esc(c.orgao_nome||"")}">${esc(c.orgao)}</h3><p>${esc(c.cargo)}</p>
     <div class="meta"><span>Vagas: ${esc(c.vagas)}</span><span>Banca: ${esc(c.banca)}</span></div>
-    ${link ? `<a href="${esc(link)}" target="_blank" rel="noopener noreferrer">Ver edital <span aria-hidden="true">→</span><span class="sr-only"> (abre em nova aba)</span></a>` : ""}</div>`;
+    ${c.inscricoes && c.inscricoes!=="A definir" ? `<div class="meta"><span>Inscrições: ${esc(c.inscricoes)}</span></div>` : ""}
+    ${links ? `<div class="conc-links">${links} <span aria-hidden="true">→</span></div>` : ""}</div>`;
 }
 function botaoCompra(link, rotulo, classe){
   return urlSegura(link)
@@ -127,16 +137,28 @@ function renderTudo(){
   filtros($("#art-filters"), [...new Set(ARTIGOS.map(a=>a.categoria))], cat=>{
     $("#all-articles").innerHTML = ARTIGOS.filter(a=>cat==="Todos"||a.categoria===cat).map(cardArtigo).join("") || vazio("Nenhum artigo nesta categoria.");
   });
-  filtros($("#conc-filters"), Object.values(SITUACOES), sit=>{
-    const linhas = CONCURSOS.filter(c=>sit==="Todos"||SITUACOES[c.situacao]===sit).map(c=>{
-      const link = urlSegura(c.link_edital);
-      return `<tr><th scope="row"><strong>${esc(c.orgao)}</strong><br><span style="color:var(--muted);font-weight:400">${esc(c.cargo)}</span>
-      ${link ? `<br><a href="${esc(link)}" target="_blank" rel="noopener noreferrer" style="font-weight:600">Edital<span class="sr-only"> de ${esc(c.orgao)} (abre em nova aba)</span></a>` : ""}</th>
-      <td><span class="status s-${esc(c.situacao)}">${SITUACOES[c.situacao]||""}</span></td>
+  // dois filtros combinados: carreira e situação
+  const fc = { area:"Todos", sit:"Todos" };
+  const tabela = () => {
+    const linhas = CONCURSOS.filter(c=>(fc.area==="Todos"||c.area===fc.area) && (fc.sit==="Todos"||SITUACOES[c.situacao]===fc.sit)).map(c=>{
+      const links = linksConcurso(c);
+      const insc = c.inscricoes && c.inscricoes!=="A definir" ? `<span class="sub">Inscrições: ${esc(c.inscricoes)}</span>` : "";
+      return `<tr><th scope="row"><strong title="${esc(c.orgao_nome||"")}">${esc(c.orgao)}</strong>${c.area?` <span class="tag">${esc(c.area)}</span>`:""}
+      <span class="sub">${esc(c.cargo)}</span>${links ? `<span class="conc-links">${links}</span>` : ""}</th>
+      <td><span class="status s-${esc(c.situacao)}">${SITUACOES[c.situacao]||""}</span>${insc}</td>
       <td class="num">${esc(c.vagas)}</td><td class="num">${esc(c.salario)}</td>
       <td>${esc(c.banca)}</td><td>${esc(c.escolaridade)}</td></tr>`;}).join("");
-    $("#conc-body").innerHTML = linhas || `<tr><td colspan="6" style="color:var(--muted)">Nenhum concurso nesta situação.</td></tr>`;
-  });
+    $("#conc-body").innerHTML = linhas || `<tr><td colspan="6" style="color:var(--muted)">Nenhum concurso com esses filtros.</td></tr>`;
+    $("#conc-total").textContent = `${CONCURSOS.length ? linhas.split("<tr>").length-1 : 0} concurso(s)`;
+  };
+  const areas = [...new Set(CONCURSOS.map(c=>c.area).filter(Boolean))];
+  $("#conc-areas").hidden = !areas.length;
+  filtros($("#conc-areas"), areas, a=>{ fc.area=a; tabela(); });
+  filtros($("#conc-filters"), Object.values(SITUACOES), s=>{ fc.sit=s; tabela(); });
+  const sinc = CFG.concursos_sincronizado_em ? new Date(CFG.concursos_sincronizado_em) : null;
+  $("#conc-fonte").innerHTML = areas.length
+    ? `Fonte: <a href="https://folha.qconcursos.com/" target="_blank" rel="noopener noreferrer">Qconcursos Folha Dirigida${novaAba}</a>${sinc && !isNaN(sinc) ? `, atualizado em ${sinc.toLocaleDateString("pt-BR")} às ${sinc.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}` : ""}. Confirme sempre as datas e regras no edital oficial.`
+    : "";
   filtros($("#prod-filters"), [...new Set(PRODUTOS.map(p=>p.tipo))], t=>{
     $("#all-produtos").innerHTML = PRODUTOS.filter(p=>t==="Todos"||p.tipo===t).map(cardProduto).join("") || vazio("Nenhum material nesta categoria.");
   });

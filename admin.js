@@ -44,8 +44,8 @@ const ENT = {
   },
   concursos:{
     nome:"Concursos", tabela:"site_concursos", ordem:[["ordem",true],["atualizado_em",false]],
-    titulo:r=>r.orgao, sub:r=>`${r.cargo} · ${(SITUACOES.find(s=>s[0]===r.situacao)||[,""])[1]}`,
-    novo:()=>({orgao:"",cargo:"",situacao:"previsto",vagas:"A definir",salario:"A definir",banca:"A definir",escolaridade:"Superior",link_edital:"",ordem:0,publicado:true}),
+    titulo:r=>r.orgao, sub:r=>`${r.area?r.area+" · ":""}${r.cargo} · ${(SITUACOES.find(s=>s[0]===r.situacao)||[,""])[1]}${r.origem==="folha"?" · automático":""}`,
+    novo:()=>({orgao:"",cargo:"",area:"Tribunais",situacao:"previsto",vagas:"A definir",salario:"A definir",banca:"A definir",escolaridade:"Superior",link_edital:"",ordem:0,publicado:true}),
     campos:[
       {k:["orgao","cargo"]},
       {k:"orgao",label:"Órgão",tipo:"text",req:true},
@@ -56,10 +56,11 @@ const ENT = {
       {k:["vagas","salario"]},
       {k:"vagas",label:"Vagas",tipo:"text"},
       {k:"salario",label:"Salário inicial",tipo:"text",help:"Ex.: R$ 9.800,00"},
+      {k:"area",label:"Carreira",tipo:"select",opts:[["Tribunais","Tribunais"],["Fiscal","Fiscal"],["Controle","Controle"],["","Outra"]]},
       {k:["banca","ordem"]},
       {k:"banca",label:"Banca",tipo:"text"},
       {k:"ordem",label:"Posição na lista",tipo:"number",help:"Menor número aparece primeiro."},
-      {k:"link_edital",label:"Link do edital (opcional)",tipo:"url"},
+      {k:"link_edital",label:"Link do edital oficial (opcional)",tipo:"url"},
       {k:"publicado",label:"Publicado (visível no site)",tipo:"check"}
     ]
   },
@@ -204,7 +205,9 @@ function abrirEditor(row){
   }
   const cats=[...new Set(linhas.map(r=>r.categoria).filter(Boolean).concat(["Método","Memorização","Edital","Rotina","Disciplinas","Notícias"]))];
   const tipos=[...new Set(linhas.map(r=>r.tipo).filter(Boolean).concat(["Resumos","Mapas mentais","Questões","Kits","Planners"]))];
-  $("#editor").innerHTML = `
+  const aviso = aba==="concursos" && row.origem==="folha"
+    ? `<p class="msg" style="background:color-mix(in srgb,var(--marker) 25%,transparent);padding:10px 12px;border-radius:9px;margin:0 0 12px">Este concurso é atualizado automaticamente pela Folha Dirigida duas vezes por dia: alterações nos campos serão substituídas. Para tirá-lo do site, desmarque <strong>Publicado</strong> e salve (ele continua escondido nas próximas atualizações).</p>` : "";
+  $("#editor").innerHTML = aviso + `
     <div class="panel-head"><h3>${row.id?"Editar":"Novo"} · ${E.nome.toLowerCase().replace(/s$/,"")}</h3>
       ${aba==="artigos"&&row.id&&row.publicado?`<a href="index.html?artigo=${encodeURIComponent(row.slug)}" target="_blank" rel="noopener">Ver no site →</a>`:""}</div>
     <form class="form" id="form-ed" novalidate>${html}
