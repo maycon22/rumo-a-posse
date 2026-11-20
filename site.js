@@ -73,9 +73,9 @@ async function buscarCorpo(slug){
 /* ---------- Cartões ---------- */
 function cardArtigo(a){
   const capa = urlSegura(a.imagem_capa)
-    ? `<img class="thumb" src="${esc(urlSegura(a.imagem_capa))}" alt="" loading="lazy" decoding="async" width="640" height="360">`
-    : `<div class="thumb thumb-ph" aria-hidden="true"><span>${esc(a.categoria)}</span></div>`;
-  return `<article class="card"><a class="stretch" href="${linkArtigo(a.slug)}">${capa}
+    ? `<span class="thumb-wrap"><img class="thumb" src="${esc(urlSegura(a.imagem_capa))}" alt="" loading="lazy" decoding="async" width="640" height="360"></span>`
+    : `<span class="thumb-wrap"><span class="thumb thumb-ph" aria-hidden="true"><span>${esc(a.categoria)}</span></span></span>`;
+  return `<article class="card clicavel"><a class="stretch" href="${linkArtigo(a.slug)}">${capa}
     <span class="tag" style="margin-top:4px">${esc(a.categoria)}</span>
     <h3 style="margin-top:10px">${esc(a.titulo)}</h3></a>
     <p>${esc(a.resumo)}</p>
@@ -86,12 +86,12 @@ function linksConcurso(c){
   const edital = (linksDaBanca(c)[0] || {}).url;
   return [
     edital ? `<a href="${esc(edital)}" target="_blank" rel="noopener noreferrer">Banca${novaAba}</a>` : "",
-    `<a href="${linkConcurso(c)}">Detalhes<span class="sr-only"> do concurso ${esc(c.orgao)}</span></a>`
+    `<a class="link-detalhes" href="${linkConcurso(c)}">Detalhes<span class="sr-only"> do concurso ${esc(c.orgao)}</span></a>`
   ].filter(Boolean).join(" · ");
 }
 function cardConcurso(c){
   const links = linksConcurso(c);
-  return `<div class="card">
+  return `<div class="card clicavel conc-card">
     <div class="card-top"><span class="status s-${esc(c.situacao)}">${SITUACOES[c.situacao]||""}</span>${c.area?`<span class="tag">${esc(c.area)}</span>`:""}</div>
     <h3 title="${esc(c.orgao_nome||"")}">${esc(c.orgao)}</h3><p>${esc(c.cargo)}</p>
     <div class="meta"><span>Vagas: ${esc(c.vagas)}</span><span>Banca: ${esc(c.banca)}</span></div>

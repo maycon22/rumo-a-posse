@@ -119,7 +119,6 @@ section{padding:56px 0}
 .card p{margin:0;color:var(--muted)}
 .card .meta{font-size:.85rem;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}
 .card a.stretch{text-decoration:none;color:inherit}
-.card a.stretch:hover h3{text-decoration:underline;text-decoration-color:var(--marker);text-decoration-thickness:4px}
 .tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.03em;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:var(--paper)}
 .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
 .chip{font:inherit;font-size:.9rem;font-weight:600;padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
@@ -277,6 +276,109 @@ td.num{white-space:normal;min-width:170px;max-width:260px;font-size:.92rem}
 .article .table-scroll,.article figure{overflow-x:auto;max-width:100%;margin:16px 0}
 .btn[data-sem-link]{opacity:.7;cursor:not-allowed}
 .btn[data-sem-link]:hover{transform:none}
+
+/* ================= Interação e movimento ================= */
+:root{--ease:cubic-bezier(.2,.7,.2,1);--sombra-card:0 22px 45px -24px rgba(19,34,61,.45)}
+:root[data-theme="dark"]{--sombra-card:0 24px 50px -22px rgba(0,0,0,.75)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--sombra-card:0 24px 50px -22px rgba(0,0,0,.75)}}
+
+/* Cartões: sobem, ganham sombra, borda amarela e uma luz que segue o mouse */
+.card{position:relative;transition:transform .35s var(--ease),box-shadow .35s var(--ease),border-color .25s}
+@media (hover:hover){
+  .card:hover,.card.reveal.in:hover{transform:translateY(-6px);box-shadow:var(--sombra-card);border-color:color-mix(in srgb,var(--marker) 75%,var(--line));
+    background-image:radial-gradient(420px circle at var(--mx,50%) var(--my,0%),color-mix(in srgb,var(--marker) 13%,transparent),transparent 60%)}
+}
+.card:active,.card.reveal.in:active{transform:translateY(-2px) scale(.99)}
+/* cartão inteiro clicável (o link principal cobre o cartão; os outros links ficam por cima) */
+.card.clicavel{cursor:pointer}
+.card.clicavel a.stretch::after,.card.clicavel a.link-detalhes::after{content:"";position:absolute;inset:0;border-radius:inherit;z-index:1}
+.card.clicavel a:not(.stretch):not(.link-detalhes),.card.clicavel button{position:relative;z-index:2}
+.card a.stretch:focus-visible,.card a.link-detalhes:focus-visible{outline:none}
+.card.clicavel:has(a.stretch:focus-visible),.card.clicavel:has(a.link-detalhes:focus-visible){outline:3px solid var(--accent);outline-offset:3px}
+/* marca-texto que "desenha" embaixo do título */
+.card h3{text-decoration:underline;text-decoration-color:transparent;text-decoration-thickness:.32em;text-underline-offset:-.12em;text-decoration-skip-ink:none;transition:text-decoration-color .35s var(--ease)}
+@media (hover:hover){.card:hover h3{text-decoration-color:color-mix(in srgb,var(--marker) 60%,transparent)}}
+.conc-links span[aria-hidden]{display:inline-block;transition:transform .3s var(--ease)}
+@media (hover:hover){.card:hover .conc-links span[aria-hidden]{transform:translateX(5px)}}
+
+/* Imagem da capa com zoom suave */
+.thumb-wrap{display:block;overflow:hidden;border-radius:8px;margin-bottom:6px}
+.thumb-wrap .thumb{margin:0;border-radius:0;transition:transform .6s var(--ease)}
+@media (hover:hover){.card:hover .thumb-wrap .thumb{transform:scale(1.06)}}
+
+/* Produtos e recursos */
+.product .cover{transition:transform .5s var(--ease)}
+@media (hover:hover){.product:hover .cover{transform:scale(1.03) rotate(-.6deg)}}
+.feature .n{transition:color .3s}
+.feature:hover .n{color:var(--marker)}
+
+/* Botões */
+.btn{transition:transform .2s var(--ease),box-shadow .25s var(--ease),background-color .2s,color .2s,border-color .2s}
+@media (hover:hover){
+  .btn:hover{transform:translateY(-2px);box-shadow:0 10px 22px -12px color-mix(in srgb,var(--ink) 70%,transparent)}
+  .btn.marker:hover{box-shadow:0 12px 26px -10px color-mix(in srgb,var(--marker) 80%,transparent)}
+  .btn.ghost:hover{background:color-mix(in srgb,var(--ink) 8%,transparent)}
+}
+.btn:active{transform:translateY(0) scale(.97)}
+
+/* Menu e filtros */
+nav.main a{position:relative;transition:background-color .2s,color .2s}
+nav.main a:not([aria-current="page"])::after{content:"";position:absolute;left:12px;right:12px;bottom:4px;height:2px;border-radius:2px;background:var(--marker);transform:scaleX(0);transform-origin:left;transition:transform .3s var(--ease)}
+@media (hover:hover){nav.main a:not([aria-current="page"]):hover{background:transparent}nav.main a:hover::after{transform:scaleX(1)}}
+.chip{transition:background-color .2s,color .2s,border-color .2s,transform .15s}
+@media (hover:hover){.chip:hover{border-color:var(--ink);transform:translateY(-1px)}}
+.chip:active{transform:scale(.96)}
+.brand-mark{transition:transform .4s var(--ease)}
+.brand:hover .brand-mark{transform:rotate(-12deg) scale(1.08)}
+.tema-btn svg{transition:transform .5s var(--ease)}
+.tema-btn:hover svg{transform:rotate(40deg)}
+
+/* Topo ganha sombra ao rolar */
+header.top{transition:box-shadow .3s}
+header.top.rolou{box-shadow:0 8px 24px -16px rgba(0,0,0,.45)}
+
+/* Tabelas, perguntas frequentes */
+tbody tr{transition:background-color .2s}
+@media (hover:hover){tbody tr:hover{background:color-mix(in srgb,var(--marker) 8%,transparent)}}
+details{transition:border-color .2s,box-shadow .3s}
+details:hover{border-color:color-mix(in srgb,var(--marker) 70%,var(--line))}
+details[open]{box-shadow:var(--sombra-card)}
+summary{list-style:none;display:flex;justify-content:space-between;gap:12px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-family:var(--font-display);font-size:1.3rem;line-height:1;transition:transform .3s var(--ease)}
+details[open] summary::after{transform:rotate(45deg)}
+
+/* Troca de página e entrada dos elementos ao rolar */
+@keyframes entrar{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.view.active{animation:entrar .45s var(--ease)}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+.card.reveal.in{transition:opacity .6s var(--ease),transform .35s var(--ease),box-shadow .35s var(--ease),border-color .25s}
+
+/* Destaque do título principal "desenhado" ao abrir */
+@keyframes marcar{from{background-size:0% 100%}to{background-size:100% 100%}}
+.hl{background:linear-gradient(transparent 55%,var(--marker) 55%,var(--marker) 92%,transparent 92%) no-repeat 0 0/100% 100%;animation:marcar 1s .35s var(--ease) both}
+
+/* Prévia do app: flutua, barras e progresso animam, cronômetro anda */
+@keyframes flutuar{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.app-mock{animation:flutuar 6s ease-in-out infinite}
+.app-mock .prog i{transition:width 1.2s var(--ease)}
+.app-mock .week span{transition:height 1s var(--ease)}
+.app-mock.parado .prog i{width:0!important}
+.app-mock.parado .week span{height:4%!important}
+
+/* Barra de leitura e botão de voltar ao topo */
+.progresso-leitura{position:fixed;left:0;top:0;height:3px;width:100%;transform-origin:left;transform:scaleX(var(--p,0));background:var(--marker);z-index:40;pointer-events:none;opacity:0;transition:opacity .3s}
+.progresso-leitura.on{opacity:1}
+.topo-btn{position:fixed;right:18px;bottom:18px;width:46px;height:46px;border-radius:50%;border:none;background:var(--marker);color:var(--marker-ink);display:grid;place-items:center;cursor:pointer;box-shadow:0 10px 26px -10px rgba(0,0,0,.5);opacity:0;transform:translateY(16px) scale(.9);pointer-events:none;transition:opacity .3s,transform .3s var(--ease);z-index:45}
+.topo-btn.on{opacity:1;transform:none;pointer-events:auto}
+@media (hover:hover){.topo-btn.on:hover{transform:translateY(-3px)}}
+
+@media (prefers-reduced-motion:reduce){
+  .reveal{opacity:1!important;transform:none!important}
+  .app-mock.parado .prog i,.app-mock.parado .week span{width:auto!important;height:auto!important}
+  .card:hover,.card.reveal.in:hover,.btn:hover,.card:active{transform:none!important}
+}
 </style>
 </head>
 <body>
@@ -539,6 +641,7 @@ td.num{white-space:normal;min-width:170px;max-width:260px;font-size:.92rem}
 <script src="dados-exemplo.js?v=20261119" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js" integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a" crossorigin="anonymous" defer></script>
-<script src="site.js?v=20261120d" defer></script>
+<script src="site.js?v=20261120e" defer></script>
+<script src="interacao.js?v=20261120e" defer></script>
 </body>
 </html>
