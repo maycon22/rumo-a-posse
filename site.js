@@ -689,6 +689,8 @@ $("#ano").textContent = new Date().getFullYear();
       else if(slug && !location.hash && !cache.artigos.some(x=>x.slug===slug)){ primeiraRota = true; rota(); }
       // a página do concurso é montada só com os dados da lista: redesenha com a versão nova
       else if(new URLSearchParams(location.search).get("concurso") && !location.hash){ primeiraRota = true; rota(); }
+      // a página do Exame do CFC usa as publicações da FGV que vêm junto com os dados novos
+      else if(location.hash === "#exame-cfc"){ primeiraRota = true; mostrarCFC(); }
     }
   }
 })();
