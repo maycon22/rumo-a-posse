@@ -394,7 +394,7 @@ tbody tr.grupo-area:hover{background:transparent}
 
 /* Exame de Suficiência do CFC */
 .cfc-banner{position:relative;display:flex;align-items:center;gap:16px;margin:0 0 18px;padding:16px 18px;border-radius:var(--r);border:2px solid var(--marker);background:linear-gradient(110deg,color-mix(in srgb,var(--marker) 22%,var(--card)),var(--card) 70%);color:var(--ink);text-decoration:none;transition:transform .3s var(--ease),box-shadow .3s var(--ease)}
-.cfc-banner.home{margin-bottom:20px}
+.cfc-banner.home{margin-bottom:0}
 .cfc-banner-ico{flex:none;display:grid;place-items:center;width:52px;height:52px;border-radius:12px;background:var(--marker);color:var(--marker-ink);font-family:var(--font-display);font-weight:800;letter-spacing:.02em}
 .cfc-banner-txt{display:grid;gap:2px}
 .cfc-banner-txt strong{font-family:var(--font-display);font-size:1.15rem}
@@ -504,12 +504,21 @@ td.cfc-links{font-size:.88rem;white-space:nowrap}
           <div><span class="eyebrow">Radar</span><h2>Concursos em destaque</h2></div>
           <a href="#concursos">Ver todos →</a>
         </div>
+        <div class="grid g3" id="home-concursos"><div class="card skel" aria-hidden="true"></div><div class="card skel" aria-hidden="true"></div><div class="card skel" aria-hidden="true"></div></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="section-head">
+          <div><span class="eyebrow">Contabilidade</span><h2>Exame de Suficiência do CFC</h2></div>
+          <a href="#exame-cfc">Ver tudo →</a>
+        </div>
         <a class="cfc-banner home" href="#exame-cfc">
           <span class="cfc-banner-ico" aria-hidden="true">CFC</span>
-          <span class="cfc-banner-txt"><strong>Exame de Suficiência do CFC</strong>
-          <span>Próxima prova, datas, taxa, cronograma, disciplinas e as últimas edições com provas, gabaritos e resultados.</span></span>
+          <span class="cfc-banner-txt"><strong id="home-cfc-titulo">Próxima prova do Exame de Suficiência</strong>
+          <span id="home-cfc-texto">Datas, taxa, cronograma, disciplinas e as últimas edições com provas, gabaritos e resultados.</span></span>
           <span class="cfc-banner-seta" aria-hidden="true">→</span></a>
-        <div class="grid g3" id="home-concursos"><div class="card skel" aria-hidden="true"></div><div class="card skel" aria-hidden="true"></div><div class="card skel" aria-hidden="true"></div></div>
       </div>
     </section>
 
@@ -707,7 +716,7 @@ td.cfc-links{font-size:.88rem;white-space:nowrap}
 <script src="dados-exemplo.js?v=20261119" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js" integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a" crossorigin="anonymous" defer></script>
-<script src="site.js?v=20261120i" defer></script>
+<script src="site.js?v=20261120j" defer></script>
 <script src="interacao.js?v=20261120f" defer></script>
 </body>
 </html>

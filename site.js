@@ -149,6 +149,7 @@ function renderTudo(){
   $("#home-concursos").innerHTML = CONCURSOS.slice(0,3).map(cardConcurso).join("") || vazio("Nenhum concurso cadastrado ainda.");
   $("#home-produtos").innerHTML = PRODUTOS.slice(0,3).map(cardProduto).join("") || vazio("Nenhum material à venda ainda.");
   $("#conc-notice").hidden = !MODO_EXEMPLO;
+  resumoCFCInicio();
 
   filtros($("#art-filters"), [...new Set(ARTIGOS.map(a=>a.categoria))], cat=>{
     $("#all-articles").innerHTML = ARTIGOS.filter(a=>cat==="Todos"||a.categoria===cat).map(cardArtigo).join("") || vazio("Nenhum artigo nesta categoria.");
@@ -458,6 +459,18 @@ function situacaoCFC(p){
   if(hoje === p.data_prova) return { classe:"aberto", rotulo:"Prova hoje", texto:`Prova hoje, ${p.horario}` };
   if(hoje < final.ini) return { classe:"autorizado", rotulo:"Prova realizada", texto:"Aguardando gabarito, recursos e resultado final" };
   return { classe:"previsto", rotulo:"Edição concluída", texto:"Aguardando o edital da próxima edição" };
+}
+
+/* Resumo do Exame do CFC na página inicial */
+async function resumoCFCInicio(){
+  const titulo = document.getElementById("home-cfc-titulo"), texto = document.getElementById("home-cfc-texto");
+  if(!titulo || !texto) return;
+  try{
+    if(!CFC) CFC = await (await fetch("cfc.json?v=20261120", { cache:"no-cache" })).json();
+    const p = CFC.proxima, s = situacaoCFC(p);
+    titulo.textContent = `${p.nome}: ${s.rotulo.toLowerCase()}`.replace(/^./, c => c.toUpperCase());
+    texto.textContent = `${s.texto} · taxa ${p.taxa} · ${CFC.prova.questoes} questões, aprovação com 25 acertos.`;
+  }catch(e){ /* mantém o texto padrão */ }
 }
 
 async function mostrarCFC(){
