@@ -194,8 +194,9 @@ function renderTudo(){
     $("#all-produtos").innerHTML = PRODUTOS.filter(p=>t==="Todos"||p.tipo===t).map(cardProduto).join("") || vazio("Nenhum material nesta categoria.");
   });
 
-  $("#plano-mensal").innerHTML = botaoCompra(CFG.checkout_mesa_mensal, "Assinar mensal", "ghost");
-  $("#plano-anual").innerHTML  = botaoCompra(CFG.checkout_mesa_anual,  "Assinar anual",  "marker");
+  // A assinatura é feita dentro da Mesa (login + Mercado Pago). Um link em site_config ainda tem prioridade, se existir.
+  $("#plano-mensal").innerHTML = urlSegura(CFG.checkout_mesa_mensal) ? botaoCompra(CFG.checkout_mesa_mensal, "Assinar mensal", "ghost") : `<a class="btn ghost" href="mesa/?plano=mensal">Assinar mensal</a>`;
+  $("#plano-anual").innerHTML  = urlSegura(CFG.checkout_mesa_anual) ? botaoCompra(CFG.checkout_mesa_anual,  "Assinar anual",  "marker") : `<a class="btn marker" href="mesa/?plano=anual">Assinar anual</a>`;
   const email = CFG.email_contato || "";
   $("#email-contato").innerHTML = email ? `<a href="mailto:${esc(email)}">${esc(email)}</a>` : "";
   const foto = $("#foto-sobre"), fotoUrl = urlSegura(CFG.foto_sobre);
