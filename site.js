@@ -47,7 +47,7 @@ function aplicar(d){ ARTIGOS=d.artigos; CONCURSOS=d.concursos; PRODUTOS=d.produt
 async function buscarSupabase(){
   const [a,k,p,g] = await Promise.all([
     sb.from("site_artigos").select(COLS_ARTIGO).eq("publicado",true).order("data_publicacao",{ascending:false}),
-    sb.from("site_concursos").select("id,chave,status_fonte,orgao,orgao_nome,area,cargo,situacao,vagas,salario,banca,escolaridade,inscricoes,provas,link_edital,fonte_url").eq("publicado",true).order("ordem").order("atualizado_em",{ascending:false}),
+    sb.from("site_concursos").select("id,chave,status_fonte,links_banca,orgao,orgao_nome,area,cargo,situacao,vagas,salario,banca,escolaridade,inscricoes,provas,link_edital,fonte_url").eq("publicado",true).order("ordem").order("atualizado_em",{ascending:false}),
     sb.from("site_produtos").select("titulo,tipo,cor,imagem,preco,preco_antigo,itens,link_checkout").eq("publicado",true).order("ordem"),
     sb.from("site_config").select("chave,valor")
   ]);
@@ -83,9 +83,9 @@ function cardArtigo(a){
 }
 const novaAba = `<span class="sr-only"> (abre em nova aba)</span>`;
 function linksConcurso(c){
-  const edital = urlSegura(c.link_edital);
+  const edital = (linksDaBanca(c)[0] || {}).url;
   return [
-    edital ? `<a href="${esc(edital)}" target="_blank" rel="noopener noreferrer">Edital${novaAba}</a>` : "",
+    edital ? `<a href="${esc(edital)}" target="_blank" rel="noopener noreferrer">Banca${novaAba}</a>` : "",
     `<a href="${linkConcurso(c)}">Detalhes<span class="sr-only"> do concurso ${esc(c.orgao)}</span></a>`
   ].filter(Boolean).join(" · ");
 }
@@ -274,6 +274,13 @@ function relacionados(a){
 }
 
 /* ---------- Página do concurso ---------- */
+function linksDaBanca(c){
+  const lista = Array.isArray(c.links_banca) ? c.links_banca : [];
+  const manual = urlSegura(c.link_edital);
+  const out = manual ? [{ rotulo: "Página oficial do edital", url: manual }] : [];
+  for(const l of lista){ const u = urlSegura(l && l.url); if(u && !out.some(o=>o.url===u)) out.push({ rotulo: String(l.rotulo||"Página do concurso na banca"), url: u }); }
+  return out;
+}
 function frase(c){
   const nome = c.orgao_nome && c.orgao_nome !== c.orgao ? `${c.orgao_nome} (${c.orgao})` : c.orgao;
   const sit = {
@@ -300,7 +307,8 @@ function mostrarConcurso(id){
   definirSEO({ titulo:`Concurso ${c.orgao}: ${SITUACOES[c.situacao]||""}`, descricao: frase(c) + (c.salario && c.salario!=="A definir" ? ` Remuneração: ${c.salario}.` : ""), url });
 
   const campo = (rot, v) => v && v !== "" ? `<div><dt>${rot}</dt><dd>${esc(v)}</dd></div>` : "";
-  const edital = urlSegura(c.link_edital), fonte = urlSegura(c.fonte_url);
+  const fonte = urlSegura(c.fonte_url), banca = linksDaBanca(c);
+  const temEdital = c.situacao === "aberto" || c.situacao === "edital";
   const sinc = CFG.concursos_sincronizado_em ? new Date(CFG.concursos_sincronizado_em) : null;
   const outros = CONCURSOS.filter(x => x !== c && x.area === c.area).slice(0,3);
   caixa.innerHTML = `${voltar}
@@ -320,8 +328,12 @@ function mostrarConcurso(id){
       ${campo("Inscrições", c.inscricoes)}
       ${campo("Provas", c.provas)}
     </dl>
+    ${banca.length ? `<div class="banca-box">
+      <h2>Inscrição e edital na banca</h2>
+      <p>${c.situacao==="aberto" ? "As inscrições são feitas no site da banca organizadora. Lá você encontra o edital completo, o formulário de inscrição e os comunicados." : "No site da banca organizadora você encontra o edital completo, os comunicados e as próximas etapas."}</p>
+      <div class="conc-acoes">${banca.map((l,i)=>`<a class="btn ${i===0?"marker":"ghost"}" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.rotulo)}${novaAba}</a>`).join("")}</div>
+    </div>` : temEdital ? `<p class="banca-box banca-vazia">O link da página do concurso na banca ${esc(c.banca)} ainda não foi localizado. Procure por "${esc(c.orgao)}" no site da banca.</p>` : ""}
     <div class="conc-acoes">
-      ${edital ? `<a class="btn marker" href="${esc(edital)}" target="_blank" rel="noopener noreferrer">Ver edital oficial${novaAba}</a>` : ""}
       ${fonte ? `<a class="btn ghost" href="${esc(fonte)}" target="_blank" rel="noopener noreferrer">Notícia completa na Folha Dirigida${novaAba}</a>` : ""}
     </div>
     <p class="conc-fonte">${fonte ? "Informações reunidas pelo Qconcursos Folha Dirigida" : "Informações cadastradas pelo Rumo à Posse"}${sinc && !isNaN(sinc) && fonte ? `, atualizadas em ${sinc.toLocaleDateString("pt-BR")}` : ""}. Datas e regras podem mudar: confirme sempre no edital oficial.</p>

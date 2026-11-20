@@ -41,3 +41,7 @@ select cron.schedule('sync-concursos-folha', '0 9,21 * * *', $$
     timeout_milliseconds := 60000
   );
 $$);
+
+-- Links das páginas dos concursos nas bancas (preenchidos pela função; Vunesp à mão)
+alter table public.site_concursos add column if not exists links_banca jsonb not null default '[]'::jsonb;
+alter table public.site_concursos add constraint concursos_links_banca_array check (jsonb_typeof(links_banca) = 'array');

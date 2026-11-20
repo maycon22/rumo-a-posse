@@ -136,13 +136,82 @@ function paraLinha(b, area, paginaFonte, hoje) {
     escolaridade: escolaridade(b.escolaridade),
     inscricoes: valor(b.inscricoes),
     provas: valor(b.provas),
-    link_edital: "",
     fonte_url: b.fonte_url || paginaFonte,
     // "publicado" não é enviado: novos entram publicados (padrão do banco) e,
     // se você despublicar um no painel, ele continua escondido nas próximas atualizações
   };
 }
 // ---- PARSER (fim) ----
+
+// ---- LINKS DAS BANCAS (início) ----
+// Só para concursos com edital publicado. FCC e Cebraspe têm listas públicas lidas direto do site da banca.
+// Para as demais, usa o link da matéria da Folha quando ele aponta para a página do concurso na banca.
+// A Vunesp bloqueia acesso automatizado: os links dela são cadastrados à mão e não são apagados aqui.
+const norm = s => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/ª/g, "a").replace(/º/g, "o")
+  .toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+const UA = { "User-Agent": "RumoAPosseBot/1.0 (+https://maycon22.github.io/rumo-a-posse/)" };
+const DOMINIOS_BANCA = /(^|\.)(vunesp\.com\.br|concursosfcc\.com\.br|cebraspe\.org\.br|fgv\.br|cesgranrio\.org\.br|ibfc\.org\.br|institutoaocp\.org\.br|idecan\.org\.br|quadrix\.org\.br|consulplan\.net|ibade\.org\.br|fundatec\.org\.br|iades\.com\.br|selecon\.org\.br|avalia\.org\.br|ibam-concursos\.org\.br|institutoconsulplan\.org\.br|fepese\.org\.br|objetivas\.com\.br|legalleconcursos\.com\.br|institutoibest\.org\.br|cetrede\.com\.br|funcab\.org|ufpr\.br|fundep\.ufmg\.br|amauc\.org\.br|cs\.ufgd\.edu\.br)$/i;
+const GENERICOS = /inscricaoaberta|inscricoesabertas|andamento|proximos|\/busca|\/$|index\.php$/i;
+
+async function listaFCC() {
+  const out: { nome: string; url: string }[] = [];
+  for (const p of ["concursoInscricaoAberta", "concursoAndamento", "concursoProximo"]) {
+    try {
+      const r = await fetch(`https://www.concursosfcc.com.br/${p}.html`, { headers: UA });
+      const html = new TextDecoder("iso-8859-1").decode(await r.arrayBuffer());
+      for (const m of html.matchAll(/textoInstituicao2">\s*<a href="(https:\/\/www\.concursosfcc\.com\.br\/concursos\/[a-z0-9]+\/index\.html)">([^<]+)</g))
+        out.push({ url: m[1], nome: decodificar(m[2]) });
+    } catch (_) { /* lista indisponível: segue sem ela */ }
+  }
+  return out;
+}
+async function listaCebraspe() {
+  try {
+    const r = await fetch("https://apis.cebraspe.org.br/cebraspe/eventos/tipo/concursos/", { headers: UA });
+    const fases = await r.json();
+    return fases.filter(f => !/encerrad/i.test(f.faseEvento)).flatMap(f => f.eventos.map(e => ({
+      codigo: String(e.eventoURL || ""), nome: String(e.eventoNomeAbreviado || ""), ano: +e.eventoAno || 0,
+      url: `https://www.cebraspe.org.br/concursos/${e.eventoURL}`
+    })));
+  } catch (_) { return []; }
+}
+async function linksDaMateria(url) {
+  if (!/\/n\//.test(url)) return [];
+  try {
+    const html = await (await fetch(url, { headers: UA })).text();
+    const achados = new Set<string>();
+    for (const m of html.replace(/<script[\s\S]*?<\/script>/gi, "").matchAll(/href="(https?:\/\/[^"]+)"/gi)) {
+      try {
+        const u = new URL(decodificar(m[1]));
+        if (DOMINIOS_BANCA.test(u.hostname) && !GENERICOS.test(u.pathname + u.search) && u.pathname.length > 1) achados.add(u.href);
+      } catch (_) { /* link inválido */ }
+    }
+    return [...achados].slice(0, 3);
+  } catch (_) { return []; }
+}
+
+async function linksBanca(l, fcc, ceb) {
+  const banca = norm(l.banca), nome = norm(l.orgao_nome), sig = norm(l.orgao);
+  const rot = (u) => ({ rotulo: `Página do concurso na ${l.banca}`, url: u });
+  if (/fcc|carlos chagas/.test(banca) && nome) {
+    const achou = [...new Map(fcc.filter(x => { const n = norm(x.nome); return n === nome || n.includes(nome) || nome.includes(n); }).map(x => [x.url, x])).values()];
+    if (achou.length) return achou.slice(0, 3).map(x => rot(x.url));
+  }
+  if (/cebraspe|cespe/.test(banca) && sig) {
+    const prefixo = sig.toUpperCase().replace(/ /g, "_") + "_";
+    const cargo = norm(l.cargo);
+    const achou = ceb.filter(e => e.codigo.toUpperCase().startsWith(prefixo))
+      .filter(e => !/NOTARI|CONSELHEIRO|RESIDENCIA/i.test(e.codigo) || /notari|conselheiro|residencia/.test(cargo))
+      .sort((a, b) => b.ano - a.ano);
+    if (achou.length) {
+      const ano = achou[0].ano;
+      return achou.filter(e => e.ano === ano).slice(0, 3).map(e => ({ rotulo: `Página do concurso no Cebraspe (${e.nome})`, url: e.url }));
+    }
+  }
+  const daMateria = await linksDaMateria(l.fonte_url);
+  return daMateria.map(rot);
+}
+// ---- LINKS DAS BANCAS (fim) ----
 
 const PRIORIDADE = { aberto: 0, edital: 1, autorizado: 2, previsto: 3 };
 
@@ -196,6 +265,20 @@ Deno.serve(async (req) => {
     const { error } = await q;
     if (error) return Response.json({ erro: error.message, relatorio }, { status: 500 });
   }
+  // links das bancas para concursos com edital publicado
+  const comEdital = todas.filter(l => l.situacao === "aberto" || l.situacao === "edital");
+  const links: Record<string, number> = {};
+  if (comEdital.length) {
+    const [fcc, ceb] = await Promise.all([listaFCC(), listaCebraspe()]);
+    for (const l of comEdital) {
+      const achados = await linksBanca(l, fcc, ceb);
+      links[l.orgao] = achados.length;
+      // sem resultado, mantém o que já estava (ex.: links da Vunesp cadastrados à mão)
+      if (achados.length) await sb.from("site_concursos").update({ links_banca: achados }).eq("chave", l.chave);
+    }
+  }
+  relatorio.links_banca = links;
+
   await sb.from("site_config").upsert({ chave: "concursos_sincronizado_em", valor: hoje.toISOString() });
   return Response.json({ ok: true, total: todas.length, relatorio });
 });
