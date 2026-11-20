@@ -61,7 +61,7 @@ img{max-width:100%}
 h1,h2,h3,h4{font-family:var(--font-display);line-height:1.15;margin:0;text-wrap:balance;letter-spacing:-.01em}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:4px}
 .wrap{max-width:1120px;margin:0 auto;padding:0 20px}
-.hl{background:linear-gradient(transparent 55%, var(--marker) 55%, var(--marker) 92%, transparent 92%);color:inherit;padding:0 .1em}
+.hl{color:var(--marker-ink)}
 
 /* Barra superior */
 header.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
@@ -355,8 +355,11 @@ details[open] summary::after{transform:rotate(45deg)}
 .card.reveal.in{transition:opacity .6s var(--ease),transform .35s var(--ease),box-shadow .35s var(--ease),border-color .25s}
 
 /* Destaque do título principal "desenhado" ao abrir */
-@keyframes marcar{from{background-size:0% 100%}to{background-size:100% 100%}}
-.hl{background:linear-gradient(transparent 55%,var(--marker) 55%,var(--marker) 92%,transparent 92%) no-repeat 0 0/100% 100%;animation:marcar 1s .35s var(--ease) both}
+/* Marca-texto do título: cobre a palavra inteira, com texto escuro por cima (legível nos dois temas) */
+@keyframes marcar{from{background-size:0% 100%;color:inherit}to{background-size:100% 100%;color:var(--marker-ink)}}
+.hl{color:var(--marker-ink);padding:.02em .18em .06em;margin:0 -.04em;border-radius:.22em .35em .28em .2em;
+  background:linear-gradient(100deg,color-mix(in srgb,var(--marker) 88%,#fff) 0%,var(--marker) 12%,var(--marker) 88%,color-mix(in srgb,var(--marker) 85%,#e0a800) 100%) no-repeat 0 60%/100% 86%;
+  -webkit-box-decoration-break:clone;box-decoration-break:clone;animation:marcar .9s .35s var(--ease) both}
 
 /* Prévia do app: flutua, barras e progresso animam, cronômetro anda */
 @keyframes flutuar{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
