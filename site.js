@@ -441,8 +441,143 @@ function htmlDetalhes(d){
     </section>`).join("")}`;
 }
 
+/* ---------- Exame de Suficiência do CFC ---------- */
+let CFC = null;
+const dataBR = iso => iso ? new Date(iso + "T12:00:00").toLocaleDateString("pt-BR") : "";
+const dataLonga = iso => iso ? new Date(iso + "T12:00:00").toLocaleDateString("pt-BR", { day:"numeric", month:"long", year:"numeric" }) : "";
+const hojeISO = () => new Date().toLocaleDateString("sv-SE");
+const diasAte = iso => Math.ceil((new Date(iso + "T10:00:00-03:00") - new Date()) / 86400000);
+
+function situacaoCFC(p){
+  const hoje = hojeISO(), insc = p.cronograma.find(e => /^Inscri/.test(e.evento));
+  const final = p.cronograma[p.cronograma.length - 1];
+  if(insc && hoje < insc.ini) return { classe:"previsto", rotulo:"Edital publicado", texto:`Inscrições a partir de ${dataBR(insc.ini)}` };
+  if(insc && hoje <= (insc.fim || insc.ini)) return { classe:"aberto", rotulo:"Inscrições abertas", texto:`Inscrições até ${dataBR(insc.fim)}` };
+  if(hoje < p.data_prova){ const d = diasAte(p.data_prova); return { classe:"edital", rotulo:"Inscrições encerradas", texto:`Prova em ${dataLonga(p.data_prova)} · faltam ${d} dia${d>1?"s":""}` }; }
+  if(hoje === p.data_prova) return { classe:"aberto", rotulo:"Prova hoje", texto:`Prova hoje, ${p.horario}` };
+  if(hoje < final.ini) return { classe:"autorizado", rotulo:"Prova realizada", texto:"Aguardando gabarito, recursos e resultado final" };
+  return { classe:"previsto", rotulo:"Edição concluída", texto:"Aguardando o edital da próxima edição" };
+}
+
+async function mostrarCFC(){
+  const caixa = $("#cfc-body");
+  definirSEO({ titulo:"Exame de Suficiência do CFC", descricao:"Exame de Suficiência do CFC (FGV): próxima prova, datas, taxa, cronograma, disciplinas, cidades e histórico das últimas edições com provas, gabaritos e resultados.", url: BASE + "#exame-cfc" });
+  if(!CFC){
+    caixa.innerHTML = `<div class="skel-text" aria-label="Carregando"><i></i><i></i><i></i><i></i></div>`;
+    try{ CFC = await (await fetch("cfc.json?v=20261120", { cache:"no-cache" })).json(); }
+    catch(e){ caixa.innerHTML = `<p>Não foi possível carregar as informações agora. <a href="#exame-cfc">Tentar de novo</a>.</p>`; return; }
+  }
+  let ao = null; try{ ao = CFG.cfc_fgv ? JSON.parse(CFG.cfc_fgv) : null; }catch(e){ ao = null; }
+  const p = CFC.proxima, s = situacaoCFC(p), hoje = hojeISO();
+  const novaEdicao = ao && ao.edicao && ao.edicao !== p.edicao && Number(ao.edicao.replace(".","")) > Number(p.edicao.replace(".",""));
+  const campo = (r, v) => v ? `<div><dt>${esc(r)}</dt><dd>${esc(v)}</dd></div>` : "";
+  const proxEvento = p.cronograma.find(e => (e.fim || e.ini) >= hoje);
+  const maxAprov = Math.max(...CFC.historico.map(h => h.aprovados || 0));
+  const secoes = [["cfc-proxima","Próxima prova"],["cfc-cronograma","Cronograma"],["cfc-prova","Como é a prova"],["cfc-quem","Quem pode fazer"],["cfc-publicacoes","Publicações da FGV"],["cfc-historico","Últimas edições"],["cfc-cidades","Cidades de prova"]];
+
+  caixa.innerHTML = `<a class="back" href="#concursos">← Todos os concursos</a>
+    <div class="conc-head"><span class="status s-${s.classe}">${esc(s.rotulo)}</span><span class="tag">Contabilidade</span><span class="tag">FGV</span></div>
+    <h1 tabindex="-1">Exame de Suficiência do CFC</h1>
+    <p class="conc-orgao">Conselho Federal de Contabilidade · organização da Fundação Getulio Vargas</p>
+    <p class="conc-resumo">${esc(CFC.sobre.objetivo)}</p>
+
+    ${novaEdicao ? `<div class="banca-box"><h2>Nova edição publicada pela FGV</h2>
+      <p><strong>${esc(ao.titulo)}</strong>${ao.status ? ` · ${esc(ao.status)}` : ""}. As datas e a taxa abaixo são da edição ${esc(p.nome)}; confira o novo edital na página oficial.</p>
+      <div class="conc-acoes"><a class="btn marker" href="${esc(urlSegura(ao.url))}" target="_blank" rel="noopener noreferrer">Ver a nova edição na FGV${novaAba}</a></div></div>` : ""}
+
+    <div class="cfc-destaque" id="cfc-proxima">
+      <div class="cfc-contagem">
+        <span class="cfc-rotulo">${esc(p.nome)}</span>
+        <strong>${esc(s.texto)}</strong>
+        ${proxEvento ? `<span class="cfc-prox">Próxima etapa: ${esc(proxEvento.evento)} · ${dataBR(proxEvento.ini)}${proxEvento.fim ? " a " + dataBR(proxEvento.fim) : ""}</span>` : ""}
+      </div>
+      <div class="conc-acoes">
+        <a class="btn marker" href="${esc(p.pagina)}" target="_blank" rel="noopener noreferrer">Página oficial na FGV${novaAba}</a>
+        <a class="btn ghost" href="${esc(p.edital)}" target="_blank" rel="noopener noreferrer">Edital (PDF)${novaAba}</a>
+        <a class="btn ghost" href="${esc(p.inscricao_url)}" target="_blank" rel="noopener noreferrer">Área do candidato${novaAba}</a>
+      </div>
+    </div>
+
+    <nav class="det-sumario" aria-label="Nesta página"><strong>Nesta página:</strong>
+      ${secoes.map(([id,t]) => `<a href="#${id}" data-scroll="${id}">${t}</a>`).join("")}</nav>
+
+    <section class="det-secao" aria-labelledby="cfc-h1"><h2 id="cfc-h1">Próxima prova</h2>
+      <dl class="ficha">
+        ${campo("Edição", p.nome)}
+        ${campo("Situação na FGV", ao && ao.edicao === p.edicao ? ao.status : "")}
+        ${campo("Data da prova", dataLonga(p.data_prova))}
+        ${campo("Horário", p.horario)}
+        ${campo("Taxa de inscrição", p.taxa)}
+        ${campo("Inscrições", (() => { const i = p.cronograma.find(e => /^Inscri/.test(e.evento)); return i ? `${dataBR(i.ini)} a ${dataBR(i.fim)}` : ""; })())}
+        ${campo("Questões", `${CFC.prova.questoes} objetivas · aprovação com 25 acertos`)}
+        ${campo("Banca", CFC.sobre.organizadora)}
+        ${campo("Atendimento FGV", p.atendimento)}
+      </dl>
+      <div class="det-grupo"><h3>Isenção da taxa</h3><ul><li>${esc(p.isencao)}</li></ul></div>
+      ${p.observacoes.length ? `<div class="det-grupo"><h3>Avisos importantes</h3><ul>${p.observacoes.map(o=>`<li>${esc(o)}</li>`).join("")}</ul></div>` : ""}
+    </section>
+
+    <section class="det-secao" id="cfc-cronograma" aria-labelledby="cfc-h2"><h2 id="cfc-h2">Cronograma da edição ${esc(p.nome.replace(/^Exame de Suficiência\s*/i, ""))}</h2>
+      <ol class="timeline">${p.cronograma.map(e => {
+        const fim = e.fim || e.ini, estado = fim < hoje ? "feito" : (e === proxEvento ? "agora" : "futuro");
+        return `<li class="${estado}${e.destaque ? " destaque" : ""}"><span class="tl-data">${e.aprox ? "até " : ""}${dataBR(e.ini)}${e.fim ? ` a ${dataBR(e.fim)}` : ""}</span>
+          <span class="tl-evento">${esc(e.evento)}${estado === "feito" ? ` <span class="sr-only">(concluído)</span>` : estado === "agora" ? ` <span class="tl-tag">próxima etapa</span>` : ""}</span></li>`; }).join("")}</ol>
+    </section>
+
+    <section class="det-secao" id="cfc-prova" aria-labelledby="cfc-h3"><h2 id="cfc-h3">Como é a prova</h2>
+      <dl class="ficha">
+        ${campo("Formato", CFC.prova.formato)}
+        ${campo("Questões", `${CFC.prova.questoes} · ${CFC.prova.alternativas}`)}
+        ${campo("Pontuação", CFC.prova.valor)}
+        ${campo("Aprovação", CFC.prova.aprovacao)}
+        ${campo("Duração", CFC.prova.duracao)}
+        ${campo("Chegada", CFC.prova.portoes)}
+      </dl>
+      <div class="det-grupo"><h3>Disciplinas cobradas</h3><ul class="cols">${CFC.prova.disciplinas.map(d=>`<li>${esc(d)}</li>`).join("")}</ul></div>
+      <div class="det-grupo"><h3>Bom saber</h3><ul>
+        <li>${esc(CFC.prova.material)}</li><li>${esc(CFC.prova.caderno)}</li><li>${esc(CFC.prova.legislacao)}</li></ul></div>
+    </section>
+
+    <section class="det-secao" id="cfc-quem" aria-labelledby="cfc-h4"><h2 id="cfc-h4">Quem pode fazer</h2>
+      <div class="det-grupo"><h3>Podem se inscrever</h3><ul>${CFC.sobre.quem_pode.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+      <div class="det-grupo"><h3>Não podem se inscrever</h3><ul>${CFC.sobre.quem_nao_pode.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+      <p class="conc-fonte">Base legal: ${esc(CFC.sobre.base_legal)}. ${esc(CFC.sobre.edicoes_por_ano)}</p>
+    </section>
+
+    <section class="det-secao" id="cfc-publicacoes" aria-labelledby="cfc-h5"><h2 id="cfc-h5">Publicações da FGV${ao ? ` · ${esc(ao.titulo.replace(/^.*Exame de Suficiência\s*/i, "Exame "))}` : ""}</h2>
+      ${ao && ao.documentos && ao.documentos.length ? `<ul class="cfc-docs">${ao.documentos.slice(0, 12).map(d => `<li><time datetime="${esc(d.data)}">${dataBR(d.data)}</time>
+          <a href="${esc(urlSegura(d.url))}" target="_blank" rel="noopener noreferrer">${esc(d.titulo)}${novaAba}</a></li>`).join("")}</ul>
+        <p class="conc-fonte">Lista lida automaticamente da página da FGV${ao.lido_em ? ` em ${new Date(ao.lido_em).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})}` : ""}. <a href="${esc(urlSegura(ao.url))}" target="_blank" rel="noopener noreferrer">Ver todas${novaAba}</a></p>`
+        : `<p>As publicações estão na <a href="${esc(p.pagina)}" target="_blank" rel="noopener noreferrer">página oficial da FGV${novaAba}</a>.</p>`}
+    </section>
+
+    <section class="det-secao" id="cfc-historico" aria-labelledby="cfc-h6"><h2 id="cfc-h6">Últimas edições</h2>
+      <div class="cfc-barras" role="img" aria-label="Aprovados por edição: ${CFC.historico.map(h=>`${h.nome}, ${h.aprovados.toLocaleString("pt-BR")}`).join("; ")}">
+        ${[...CFC.historico].reverse().map(h => `<div class="cfc-barra"><span class="cfc-barra-n">${h.aprovados.toLocaleString("pt-BR")}</span>
+          <i style="height:${Math.max(6, Math.round(h.aprovados / maxAprov * 100))}%"></i><span class="cfc-barra-e">${esc(h.nome)}</span></div>`).join("")}
+      </div>
+      <p class="conc-fonte">Número de aprovados em cada edição, contado na lista oficial de resultado final publicada pela FGV.</p>
+      <div class="table-wrap det-tabela"><table>
+        <caption class="sr-only">Edições anteriores do Exame de Suficiência</caption>
+        <thead><tr><th scope="col">Edição</th><th scope="col">Data da prova</th><th scope="col">Inscrições</th><th scope="col">Taxa</th><th scope="col">Aprovados</th><th scope="col">Documentos</th></tr></thead>
+        <tbody>${CFC.historico.map(h => `<tr><th scope="row"><a href="${esc(h.pagina)}" target="_blank" rel="noopener noreferrer">${esc(h.nome)}${novaAba}</a></th>
+          <td>${dataBR(h.data_prova)}</td><td>${esc(h.inscricoes)}</td><td class="num">${esc(h.taxa)}</td><td class="num">${h.aprovados.toLocaleString("pt-BR")}</td>
+          <td class="cfc-links">${[["Edital",h.edital],["Prova",h.prova],["Gabarito",h.gabarito],["Resultado",h.resultado]].map(([t,u]) => `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${t}<span class="sr-only"> da edição ${esc(h.nome)} (abre em nova aba)</span></a>`).join(" · ")}</td></tr>`).join("")}</tbody>
+      </table></div>
+      <p class="conc-fonte">A taxa subiu de R$ 100,00 (2/2024) para ${esc(p.taxa)} (${esc(p.nome)}). "Prova" abre o caderno tipo 1; os outros tipos estão na página de cada edição.</p>
+    </section>
+
+    <section class="det-secao" id="cfc-cidades" aria-labelledby="cfc-h7"><h2 id="cfc-h7">Cidades de prova</h2>
+      <p>A prova é aplicada no mesmo dia e horário em todo o país. Na edição ${esc(p.nome)}, as cidades disponíveis são:</p>
+      ${Object.entries(p.cidades).map(([uf, c]) => `<details class="cfc-uf"><summary>${esc(uf)}</summary><p>${esc(c)}</p></details>`).join("")}
+    </section>
+
+    <p class="conc-fonte">Fonte: ${esc(CFC.fonte)}. Informações conferidas em ${dataBR(CFC.conferido_em)}. Regras e datas podem mudar: confirme sempre no edital oficial.</p>
+    <blockquote><strong>Vai fazer o Exame do CFC?</strong> A Mesa de Estudos monta seu ciclo com as 13 disciplinas, cronometra as horas líquidas e agenda as revisões até o dia da prova. <a href="#mesa-de-estudos">Conhecer</a></blockquote>`;
+}
+
 /* ---------- Rotas ---------- */
-const VIEWS = ["inicio","artigos","concursos","materiais","mesa-de-estudos","sobre"];
+const VIEWS = ["inicio","artigos","concursos","exame-cfc","materiais","mesa-de-estudos","sobre"];
 function rota(){
   const h = decodeURIComponent((location.hash||"").slice(1));
   // links antigos: #artigo-slug  ->  ?artigo=slug
@@ -456,12 +591,13 @@ function rota(){
   document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active", v.id==="v-"+view));
   document.querySelectorAll("nav.main a").forEach(a=>{
     const alvo = a.getAttribute("href").slice(1);
-    const ativo = alvo===view || (view==="artigo" && alvo==="artigos") || (view==="concurso" && alvo==="concursos");
+    const ativo = alvo===view || (view==="artigo" && alvo==="artigos") || ((view==="concurso" || view==="exame-cfc") && alvo==="concursos");
     ativo ? a.setAttribute("aria-current","page") : a.removeAttribute("aria-current");
   });
   fecharMenu();
   if(view==="artigo") mostrarArtigo(slug);
   else if(view==="concurso") mostrarConcurso(conc);
+  else if(view==="exame-cfc") mostrarCFC();
   else {
     meta('meta[name="robots"]', "content", "index,follow");
     const s = SEO_VIEWS[view] || {};

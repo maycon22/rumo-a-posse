@@ -1,0 +1,153 @@
+{
+  "fonte": "Editais e páginas oficiais do Exame de Suficiência na FGV Conhecimento (conhecimento.fgv.br/exames/cfc)",
+  "conferido_em": "2026-11-20",
+  "sobre": {
+    "objetivo": "Comprovar conhecimentos médios do curso de Bacharelado em Ciências Contábeis. A aprovação é um dos requisitos para o registro profissional de Contador no Conselho Regional de Contabilidade (CRC).",
+    "base_legal": "Decreto-Lei nº 9.295/1946 (art. 76, com redação da Lei nº 12.249/2010) e Resolução CFC nº 1.486/2015",
+    "organizadora": "Fundação Getulio Vargas (FGV)",
+    "quem_pode": [
+      "Bacharéis em Ciências Contábeis",
+      "Estudantes de Ciências Contábeis regularmente matriculados a partir do 5º semestre",
+      "Portadores de diploma estrangeiro já revalidado na data da inscrição"
+    ],
+    "quem_nao_pode": [
+      "Bacharéis já aprovados em edições anteriores (há exceções previstas na Resolução CFC nº 1.486/2015)",
+      "Contadores com registro ativo ou baixado em CRC"
+    ],
+    "edicoes_por_ano": "Em 2026 foram realizadas três edições (maio, setembro e dezembro)."
+  },
+  "prova": {
+    "formato": "Prova objetiva de múltipla escolha",
+    "questoes": 50,
+    "alternativas": "4 opções (A, B, C e D), uma correta",
+    "valor": "1 ponto por questão (50 pontos no total)",
+    "aprovacao": "Acertar no mínimo 50% da prova: 25 pontos",
+    "duracao": "4 horas, das 10h às 14h (horário de Brasília)",
+    "portoes": "Os portões abrem às 9h30; chegue com 1h30 de antecedência",
+    "material": "Caneta esferográfica de tinta azul ou preta, documento de identidade original com foto",
+    "caderno": "O caderno de questões só pode ser levado nos últimos 30 minutos de prova",
+    "legislacao": "Vale a legislação e as normas vigentes até 90 dias antes da prova",
+    "disciplinas": [
+      "Língua Portuguesa Aplicada",
+      "Matemática Financeira e Estatística",
+      "Noções de Direito e Legislação Aplicada",
+      "Legislação e Ética Profissional",
+      "Teoria da Contabilidade",
+      "Princípios de Contabilidade e Normas Brasileiras de Contabilidade",
+      "Contabilidade Geral",
+      "Contabilidade de Custos",
+      "Contabilidade Gerencial",
+      "Contabilidade Aplicada ao Setor Público",
+      "Controladoria",
+      "Auditoria Contábil",
+      "Perícia Contábil"
+    ]
+  },
+  "proxima": {
+    "edicao": "2026.3",
+    "nome": "Exame de Suficiência nº 3/2026",
+    "pagina": "https://conhecimento.fgv.br/exames/cfc/2026.3",
+    "edital": "https://conhecimento.fgv.br/sites/default/files/concursos/cfc-edital-2026.3-05.10.2026.pdf",
+    "inscricao_url": "https://portal.conhecimento.fgv.br/Concurso/Inscricao",
+    "taxa": "R$ 199,00",
+    "data_prova": "2026-12-13",
+    "horario": "10h às 14h (horário de Brasília)",
+    "atendimento": "0800 591 3078 · examecfc@fgv.br",
+    "isencao": "Para inscritos no CadÚnico e membros de família de baixa renda (Decreto nº 6.593/2008), com pedido de 5 a 7 de outubro de 2026",
+    "observacoes": [
+      "O prazo de pagamento do boleto foi prorrogado de 3 para 5 de novembro de 2026 (comunicado da FGV de 03/11/2026).",
+      "O pagamento só é aceito por boleto bancário, no valor exato do edital."
+    ],
+    "cronograma": [
+      { "ini": "2026-10-05", "evento": "Publicação do edital" },
+      { "ini": "2026-10-05", "fim": "2026-10-30", "evento": "Inscrições (das 16h de 05/10 às 16h de 30/10)" },
+      { "ini": "2026-10-05", "fim": "2026-10-07", "evento": "Pedido de isenção da taxa" },
+      { "ini": "2026-10-20", "evento": "Resultado preliminar dos pedidos de isenção" },
+      { "ini": "2026-10-21", "fim": "2026-10-22", "evento": "Recurso contra indeferimento da isenção" },
+      { "ini": "2026-10-30", "evento": "Resultado definitivo dos pedidos de isenção" },
+      { "ini": "2026-11-05", "evento": "Último dia para pagar o boleto (prorrogado)" },
+      { "ini": "2026-11-19", "evento": "Resultado definitivo da homologação das inscrições" },
+      { "ini": "2026-12-07", "evento": "Divulgação do local de prova (Cartão de Confirmação de Inscrição)" },
+      { "ini": "2026-12-13", "evento": "Aplicação da prova", "destaque": true },
+      { "ini": "2026-12-14", "evento": "Gabarito preliminar" },
+      { "ini": "2026-12-15", "fim": "2026-12-17", "evento": "Recursos contra o gabarito (das 12h de 15/12 às 12h de 17/12)" },
+      { "ini": "2027-01-27", "evento": "Resultado definitivo e resultado final (até 45 dias após a prova)", "aprox": true }
+    ],
+    "cidades": {
+      "Acre": "Cruzeiro do Sul e Rio Branco",
+      "Alagoas": "Arapiraca e Maceió",
+      "Amapá": "Macapá",
+      "Amazonas": "Manaus",
+      "Bahia": "Alagoinhas, Barreiras, Eunápolis, Feira de Santana, Irecê, Itabuna, Salvador e Vitória da Conquista",
+      "Ceará": "Fortaleza, Juazeiro do Norte e Sobral",
+      "Distrito Federal": "Brasília",
+      "Espírito Santo": "Cachoeiro de Itapemirim, Linhares e Vitória",
+      "Goiás": "Anápolis, Goiânia e Rio Verde",
+      "Maranhão": "Imperatriz e São Luís",
+      "Mato Grosso": "Barra do Garças, Cáceres, Cuiabá, Rondonópolis, Sinop e Tangará da Serra",
+      "Mato Grosso do Sul": "Campo Grande, Dourados e Três Lagoas",
+      "Minas Gerais": "Belo Horizonte, Divinópolis, Governador Valadares, Ipatinga, Juiz de Fora, Montes Claros, Paracatu, Patos de Minas, Poços de Caldas, Pouso Alegre, São João del-Rei, Uberlândia e Varginha",
+      "Pará": "Belém, Castanhal, Itaituba, Marabá, Redenção e Santarém",
+      "Paraíba": "Campina Grande e João Pessoa",
+      "Paraná": "Cascavel, Curitiba, Francisco Beltrão, Londrina, Maringá, Ponta Grossa e Umuarama",
+      "Pernambuco": "Caruaru, Petrolina e Recife",
+      "Piauí": "Floriano, Parnaíba, Picos e Teresina",
+      "Rio de Janeiro": "Campos dos Goytacazes, Niterói, Nova Friburgo, Nova Iguaçu, Petrópolis, Rio de Janeiro e Volta Redonda",
+      "Rio Grande do Norte": "Caicó, Mossoró e Natal",
+      "Rio Grande do Sul": "Caxias do Sul, Ijuí, Lajeado, Novo Hamburgo, Passo Fundo, Pelotas, Porto Alegre, Santa Cruz do Sul, Santa Maria, Santo Ângelo e Uruguaiana",
+      "Rondônia": "Ji-Paraná, Porto Velho e Vilhena",
+      "Roraima": "Boa Vista",
+      "Santa Catarina": "Blumenau, Chapecó, Criciúma, Florianópolis, Itajaí, Joaçaba, Joinville e Lages",
+      "São Paulo": "Araçatuba, Araraquara, Bauru, Campinas, Jundiaí, Marília, Piracicaba, Presidente Prudente, Ribeirão Preto, Santos, São José do Rio Preto, São José dos Campos, São Paulo e Sorocaba",
+      "Sergipe": "Aracaju e Itabaiana",
+      "Tocantins": "Araguaína, Gurupi e Palmas"
+    }
+  },
+  "historico": [
+    {
+      "edicao": "2026.2", "nome": "2/2026", "data_prova": "2026-09-27", "taxa": "R$ 130,00",
+      "inscricoes": "09/07 a 07/08/2026", "aprovados": 16281,
+      "pagina": "https://conhecimento.fgv.br/exames/cfc/2026.2",
+      "edital": "https://conhecimento.fgv.br/sites/default/files/concursos/cfc-edital-2026.2-08.07.2026.pdf",
+      "prova": "https://conhecimento.fgv.br/sites/default/files/concursos/contador-cns001-tipo-1.pdf",
+      "gabarito": "https://conhecimento.fgv.br/sites/default/files/concursos/conselho-federal-de-contabilidade-cfc-exame-de-suficiencia-022026.pdf",
+      "resultado": "https://conhecimento.fgv.br/sites/default/files/concursos/cfc-2026.2-resultado-final-de-aprovados-dou_1.pdf"
+    },
+    {
+      "edicao": "2026.1", "nome": "1/2026", "data_prova": "2026-05-24", "taxa": "R$ 130,00",
+      "inscricoes": "23/02 a 24/03/2026", "aprovados": 12614,
+      "pagina": "https://conhecimento.fgv.br/exames/cfc/2026.1",
+      "edital": "https://conhecimento.fgv.br/sites/default/files/concursos/cfc-edital-2026.1-versao-final.pdf",
+      "prova": "https://conhecimento.fgv.br/sites/default/files/concursos/cfc20261t1.pdf",
+      "gabarito": "https://conhecimento.fgv.br/sites/default/files/concursos/gabarito-definitivo_1.pdf",
+      "resultado": "https://conhecimento.fgv.br/sites/default/files/concursos/cfc-2026.1-resultado-final-de-aprovados-dou.pdf"
+    },
+    {
+      "edicao": "2025.2", "nome": "2/2025", "data_prova": "2025-09-14", "taxa": "R$ 120,00",
+      "inscricoes": "14/05 a 12/06/2025", "aprovados": 9435,
+      "pagina": "https://conhecimento.fgv.br/exames/cfc/2025.2",
+      "edital": "https://conhecimento.fgv.br/sites/default/files/concursos/cfc-edital-2025.2_final.pdf",
+      "prova": "https://conhecimento.fgv.br/sites/default/files/concursos/cfc20252t01.pdf",
+      "gabarito": "https://conhecimento.fgv.br/sites/default/files/concursos/gabarito-definitivo-cfc-2025.2.pdf",
+      "resultado": "https://conhecimento.fgv.br/sites/default/files/concursos/cfc-2025.2-resultado-final-de-aprovados-dou.pdf"
+    },
+    {
+      "edicao": "2025.1", "nome": "1/2025", "data_prova": "2025-04-06", "taxa": "R$ 120,00",
+      "inscricoes": "14/01 a 13/02/2025", "aprovados": 19078,
+      "pagina": "https://conhecimento.fgv.br/exames/cfc/2025.1",
+      "edital": "https://conhecimento.fgv.br/sites/default/files/concursos/cfc-edital-2025.1-final.pdf",
+      "prova": "https://conhecimento.fgv.br/sites/default/files/concursos/cfc20251t01.pdf",
+      "gabarito": "https://conhecimento.fgv.br/sites/default/files/concursos/gabaritodefinitivocfc2025_1_v2_0.pdf",
+      "resultado": "https://conhecimento.fgv.br/sites/default/files/concursos/cfc-2025.1-resultado-final-de-aprovados-dou_corrigido.pdf"
+    },
+    {
+      "edicao": "2024.2", "nome": "2/2024", "data_prova": "2024-11-24", "taxa": "R$ 100,00",
+      "inscricoes": "16/08 a 26/09/2024", "aprovados": 4607,
+      "pagina": "https://conhecimento.fgv.br/exames/cfc/2024.2",
+      "edital": "https://conhecimento.fgv.br/sites/default/files/concursos/cfc-edital-2024.2_final.pdf",
+      "prova": "https://conhecimento.fgv.br/sites/default/files/concursos/cfc20242t01_0.pdf",
+      "gabarito": "https://conhecimento.fgv.br/sites/default/files/concursos/cfc-2024_02-exame-de-suficiencia-gabarito-definitivo.pdf",
+      "resultado": "https://conhecimento.fgv.br/sites/default/files/concursos/cfc-2024.2-resultado-final-de-aprovados-dou.pdf"
+    }
+  ]
+}

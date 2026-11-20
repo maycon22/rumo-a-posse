@@ -49,3 +49,12 @@ alter table public.site_concursos add constraint concursos_links_banca_array che
 -- Ficha completa de cada concurso (fatos extraídos da matéria principal da Folha)
 alter table public.site_concursos add column if not exists detalhes jsonb not null default '{}'::jsonb;
 alter table public.site_concursos add constraint concursos_detalhes_obj check (jsonb_typeof(detalhes) = 'object');
+
+-- Exame de Suficiência do CFC: função sync-cfc lê a página da FGV e grava em site_config.cfc_fgv
+select cron.schedule('sync-cfc-fgv', '10 9,21 * * *', $$
+  select net.http_post(
+    url := 'https://hdegaqyvolsqgydwuyau.supabase.co/functions/v1/sync-cfc',
+    headers := jsonb_build_object('Content-Type','application/json',
+      'x-sync-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'site_sync_concursos_secret')),
+    body := '{}'::jsonb, timeout_milliseconds := 60000);
+$$);
