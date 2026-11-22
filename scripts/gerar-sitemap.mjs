@@ -2,7 +2,7 @@
 // Uso: node scripts/gerar-sitemap.mjs   (roda sozinho todo dia pelo GitHub Actions)
 import { readFileSync, writeFileSync } from "node:fs";
 
-const SITE = "https://maycon22.github.io/rumo-a-posse/";
+const SITE = "https://rumoaposseconcursos.com.br/";
 const cfg = readFileSync(new URL("../config.js", import.meta.url), "utf8");
 const URL_SB = cfg.match(/SUPABASE_URL:\s*"([^"]+)"/)[1];
 const KEY = cfg.match(/SUPABASE_KEY:\s*"([^"]+)"/)[1];
