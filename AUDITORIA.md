@@ -28,3 +28,11 @@ SQL completo em `supabase/2026-11-19-auditoria.sql`.
 5. **Imagem de compartilhamento** (og:image, 1200×630) para quando o link for enviado no WhatsApp/redes.
 6. **Domínio próprio** (ex.: rumoaposse.com.br): ajuda na marca e no SEO; o e-mail de contato já usa esse domínio.
 7. **Envio da newsletter:** exportar o CSV no painel e importar num serviço de e-mail (Brevo, MailerLite…).
+
+## Editais → planos de estudo (22/11/2026)
+- **Como funciona:** a função `ler-editais` (Supabase, a cada 10 min) pega cada concurso novo da página Concursos, acha o PDF do edital (página da banca ou da matéria), lê o texto a partir do conteúdo programático e pede à IA (Claude) as disciplinas e os tópicos de cada cargo.
+- **Nada vai para o app sem você:** os planos ficam na aba **Editais → planos** do painel, com a porcentagem de tópicos encontrados no texto do edital. Você corrige, aprova ou rejeita. Só os aprovados aparecem no catálogo da Mesa de Estudos, com o selo "Novo" e "Gerado por IA".
+- **Segurança:** as tabelas `site_editais` e `site_editais_planos` têm RLS; só o admin vê a fila; visitantes leem apenas planos aprovados. A chave da IA fica só nos segredos do Supabase.
+- **Custo:** limite mensal em `EDITAL_LIMITE_USD_MES` (padrão US$ 15). Ao chegar nele, a fila espera o mês seguinte.
+- **Arquivos:** `supabase/2026-11-22-editais-planos.sql`, `supabase/functions/ler-editais/index.ts`, `admin-editais.js`, `mesa/ponte-supabase.js`.
+- **Pendência:** cadastrar o segredo `ANTHROPIC_API_KEY` no Supabase. Sem ele os editais ficam em "aguardando IA".

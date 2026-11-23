@@ -1,12 +1,13 @@
-<!doctype html><html><head>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <meta name="theme-color" content="#F2F5F3">
-<meta name="description" content="Mesa de Estudos: ciclo de estudos, cronÃ´metro, edital verticalizado e revisÃµes para concursos.">
+<meta name="description" content="Mesa de Estudos: planos de estudo, ciclo, cronômetro, edital verticalizado e revisões para concursos.">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
 <script src="../config.js"></script>
-<script src="ponte-supabase.js"></script><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Mesa de Concursos</title>
+<script src="ponte-supabase.js"></script>
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Mesa de Estudos</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700;800&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
@@ -1035,10 +1036,10 @@ function atualizarSync(estado) {
   if (S.mode !== "db") { el.hidden = true; return; }
   const pend = Object.keys(pendArt()).length, enviando = Object.values(writing).some(Boolean) || Object.keys(agendados).length;
   const bl = Object.keys(bloqueados).length;
+  // Com tudo salvo (ou salvando) o indicador fica escondido; ele só aparece quando há um problema.
+  if (!bl && (enviando || !pend)) { el.hidden = true; return; }
   const [cls, txt, dica] = bl ? ["bad", "Não salvo na nuvem", "Um documento não pôde ser salvo. Veja Ajustes → Sincronização."]
-    : enviando ? ["warn", "Salvando…", "Enviando suas alterações"]
-    : pend ? ["warn", SYNC.estado === "offline" ? "Sem conexão" : "Aguardando envio", `${pend} documento(s) guardado(s) neste aparelho, aguardando envio`]
-    : ["good", "Salvo", SYNC.quando ? `Último envio às ${new Date(SYNC.quando).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}` : "Tudo salvo na sua conta"];
+    : ["warn", SYNC.estado === "offline" ? "Sem conexão" : "Aguardando envio", `${pend} documento(s) guardado(s) neste aparelho, aguardando envio`];
   el.hidden = false; el.dataset.st = cls; el.title = dica; el.setAttribute("aria-label", "Sincronização: " + txt);
   el.innerHTML = `<i aria-hidden="true"></i><span class="side-t">${txt}</span>`;
 }
@@ -1784,12 +1785,12 @@ function sincronizarAbaInterna() {
 }
 function railHtml() {
   const m = MODULOS[0];
-  return `<div class="brand"><span class="row" style="gap:8px"><i></i>Mesa de Concursos</span><button type="button" class="lat-btn" data-lat="ocultar" aria-label="Ocultar barra lateral" title="Ocultar barra lateral"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M9.5 4.5v15"/></svg></button></div>
+  return `<div class="brand"><span class="row" style="gap:8px"><i></i>Mesa de Estudos</span><button type="button" class="lat-btn" data-lat="ocultar" aria-label="Ocultar barra lateral" title="Ocultar barra lateral"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M9.5 4.5v15"/></svg></button></div>
     ${m.grupos.map(([g, abas]) => `<div class="side-g">${g}</div>${abas.map(([k, n]) => `<a class="side-a" href="#concursos/${k}" data-nav="${k}">${icone(k)}<span class="side-t">${n}</span>${k === "revisoes" ? `<span class="badge" id="${m.badge}" hidden>0</span>` : ""}</a>`).join("")}`).join("")}
     <div class="side-fim"><a class="side-a sync-ind" id="syncInd" href="#ajustes" hidden role="status"></a><a class="side-a" href="#ajustes" data-nav="ajustes">${icone("ajustes")}<span class="side-t">Ajustes</span></a></div>`;
 }
 function railHtmlAntigo() {
-  return `<div class="brand"><i></i>Mesa de Concursos</div>
+  return `<div class="brand"><i></i>Mesa de Estudos</div>
     <div class="mods">${modsAtivos().map(m => `<a class="mod-card" href="#${m.id}" data-mod="${m.id}" style="--mc:${m.cor}"><span class="mod-ic">${icone(m.id)}</span>
       <span class="mod-txt"><span class="mod-t"><span class="mod-n">${m.n}. </span><span class="mod-nome-l">${m.nome}</span><span class="mod-nome-c">${m.curto}</span></span><span class="mod-s">${m.sub}</span></span><span class="badge" id="${m.badge}" hidden>0</span></a>`).join("")}</div>
     <a class="rail-aj" href="#ajustes" data-mod="ajustes" aria-label="Ajustes">${icone("ajustes")}<span>Ajustes</span></a>`;
@@ -4457,7 +4458,7 @@ const horasDec = min => Math.round(min / 60 * 100) / 100;
 function tabelasCentral(R) {
   const amb = a => ambiente(a)?.nome || a;
   return {
-    "Resumo": [["Relatório de desempenho — Mesa de Concursos"], ["Filtros", filtrosDescricao(R)], ["Gerado em", new Date().toLocaleString("pt-BR")], [],
+    "Resumo": [["Relatório de desempenho — Mesa de Estudos"], ["Filtros", filtrosDescricao(R)], ["Gerado em", new Date().toLocaleString("pt-BR")], [],
       ["Indicador", "Valor"], ["Horas estudadas", horasDec(R.horas.min)], ["Sessões", R.horas.sessoes], ["Dias com estudo", R.horas.diasCom], ["Dias sem registro", R.horas.diasSem], ["Média por dia (h)", horasDec(R.horas.mediaDia)],
       ...AMBIENTES.map(a => [`Horas — ${a.nome}`, horasDec(R.horas.por[a.id])]), ["Questões resolvidas", R.questoes.q], ["Acertos", R.questoes.a], ["Percentual de acertos", R.questoes.q ? pctN(R.questoes.a, R.questoes.q) / 100 : ""],
       ["Revisões realizadas", R.revisoes.feitas], ...R.metas.map(m => [`Metas ${m.tipo === "semana" ? "semanais" : "diárias"} cumpridas — ${amb(m.amb)}`, `${m.cumpridas} de ${m.avaliadas}`])],
@@ -4493,7 +4494,7 @@ async function exportarPdf(R) {
   const W = 595, Hh = 842, M = 44, tinta = L.rgb(0.09, 0.13, 0.11), cinza = L.rgb(0.35, 0.41, 0.38), azul = L.rgb(0.12, 0.34, 0.82), claro = L.rgb(0.91, 0.93, 0.92);
   const limpa = s => String(s ?? "").replace(/[\u0000-\u001F]/g, " ").replace(/[^ -ÿ–—‘’“”•…€]/g, "");
   const corta = (s, size, max, f = fonte) => { s = limpa(s); if (f.widthOfTextAtSize(s, size) <= max) return s; while (s.length > 1 && f.widthOfTextAtSize(s + "…", size) > max) s = s.slice(0, -1); return s + "…"; };
-  let page, y; const nova = () => { page = doc.addPage([W, Hh]); y = Hh - M; page.drawText(limpa("Mesa de Concursos · Relatório de desempenho"), { x: M, y: 24, size: 8, font: fonte, color: cinza }); page.drawText(String(doc.getPageCount()), { x: W - M - 10, y: 24, size: 8, font: fonte, color: cinza }); };
+  let page, y; const nova = () => { page = doc.addPage([W, Hh]); y = Hh - M; page.drawText(limpa("Mesa de Estudos · Relatório de desempenho"), { x: M, y: 24, size: 8, font: fonte, color: cinza }); page.drawText(String(doc.getPageCount()), { x: W - M - 10, y: 24, size: 8, font: fonte, color: cinza }); };
   const espaco = h => { if (y - h < M) nova(); };
   const texto = (s, size = 10, f = fonte, cor = tinta, x = M) => { espaco(size + 6); page.drawText(corta(s, size, W - x - M, f), { x, y: y - size, size, font: f, color: cor }); y -= size + 6; };
   const tabela = (titulo, linhas, larg, direita = []) => {
@@ -6041,6 +6042,50 @@ const CATALOGO = [
   { orgao: "Tribunal de Contas do Estado de Goiás", sigla: "TCE-GO", itens: [
     { id: "tcego-2026-a01", cargo: "Técnico de Controle Externo – Técnico Administrativo", ano: 2026, edital: "Edital nº 01/2026", fonte: "conteúdo programático do edital, cargo A01", materias: () => baseTCE() } ] }
 ];
+
+/* Editais do site Rumo à Posse: lidos do edital por IA e aprovados pelo administrador antes de aparecer aqui.
+   Só existem na versão do site (a ponte do Supabase define window.mesaCatalogoSite); no Claude o catálogo fica como está. */
+const CAT_SITE = { estado: "nada", lidoEm: 0 };
+const MESES_PT = { janeiro: 1, fevereiro: 2, marco: 3, abril: 4, maio: 5, junho: 6, julho: 7, agosto: 8, setembro: 9, outubro: 10, novembro: 11, dezembro: 12 };
+function dataDeTexto(t) {
+  const m = /(\d{1,2})º?\s+de\s+([a-zç]+)\s+de\s+(20\d\d)/i.exec(semAc(String(t || "")).toLowerCase()); if (!m || !MESES_PT[m[2]]) return "";
+  const d = `${m[3]}-${String(MESES_PT[m[2]]).padStart(2, "0")}-${String(+m[1]).padStart(2, "0")}`;
+  return dataReal(d) ? d : "";
+}
+const siglaOrgao = o => { o = String(o || "").trim(); return o.length <= 7 ? o.toUpperCase() : siglaPlano({ nome: o }); };
+function aplicarCatalogoSite(linhas) {
+  const grupos = new Map();
+  for (const r of linhas || []) {
+    if (!Array.isArray(r?.disciplinas) || !r.disciplinas.length || !r.id) continue;
+    const i = r.info && typeof r.info === "object" ? r.info : {}, nomeOrg = String(i.orgao_nome || i.orgao || "Concurso").slice(0, 160);
+    const g = grupos.get(nomeOrg) || { orgao: nomeOrg, sigla: siglaOrgao(i.orgao || nomeOrg), site: true, recente: 0, itens: [] };
+    const em = Date.parse(r.aprovado_em) || 0; g.recente = Math.max(g.recente, em);
+    g.itens.push({
+      id: "s" + String(r.id).replace(/[^a-z0-9]/gi, "").slice(0, 36), cargo: String(r.cargo || "Cargo").slice(0, 300),
+      ano: (String(i.provas || "").match(/20\d\d/) || [])[0] || (em ? new Date(em).getFullYear() : ""),
+      edital: String(i.pdf_titulo || "Edital publicado").slice(0, 200), fonte: "conteúdo lido do edital por IA e conferido pelo Rumo à Posse",
+      banca: i.banca && i.banca !== "A definir" ? String(i.banca).slice(0, 80) : "", provas: String(i.provas || "").slice(0, 120),
+      pdf: /^https?:\/\//.test(i.pdf_url || "") ? i.pdf_url : "", site: true, novo: em && Date.now() - em < 14 * 864e5, aprovadoEm: em,
+      materias: () => r.disciplinas.map(d => ({ nome: String(d.nome || "").slice(0, 80), horasCiclo: Math.max(2, Math.min(8, Math.round((d.topicos || []).length / 4))),
+        topicos: (d.topicos || []).map(t => ({ nome: String(typeof t === "string" ? t : t?.t || "").slice(0, 300), sub: (Array.isArray(t?.sub) ? t.sub : []).map(s => String(s).slice(0, 300)).filter(Boolean) })).filter(t => t.nome) })).filter(d => d.nome && d.topicos.length),
+    });
+    grupos.set(nomeOrg, g);
+  }
+  const site = [...grupos.values()].sort((a, b) => b.recente - a.recente);
+  site.forEach(g => g.itens.sort((a, b) => b.aprovadoEm - a.aprovadoEm));
+  CATALOGO.splice(0, CATALOGO.length, ...site, ...CATALOGO.filter(g => !g.site));
+}
+async function carregarCatalogoSite(forcar) {
+  if (typeof window.mesaCatalogoSite !== "function" || CAT_SITE.estado === "carregando") return;
+  if (!forcar && CAT_SITE.estado === "ok" && Date.now() - CAT_SITE.lidoEm < 10 * 60e3) return;
+  if (!forcar && CAT_SITE.estado === "erro" && Date.now() - (CAT_SITE.falhaEm || 0) < 60e3) return;
+  if (CAT_SITE.estado === "nada") { const c = ls.get("mesa-cat-site"); if (c && Array.isArray(c.linhas)) aplicarCatalogoSite(c.linhas); }
+  CAT_SITE.estado = "carregando";
+  try { const linhas = await window.mesaCatalogoSite(); aplicarCatalogoSite(linhas); CAT_SITE.estado = "ok"; CAT_SITE.lidoEm = Date.now(); ls.set("mesa-cat-site", { em: Date.now(), linhas }); }
+  catch (e) { CAT_SITE.estado = "erro"; CAT_SITE.falhaEm = Date.now(); }
+  if (location.hash.endsWith("/planos")) render();
+}
+const novosNoCatalogo = () => CATALOGO.flatMap(g => g.itens).filter(it => it.novo && !S.config.concursos.some(c => c.catalogo === it.id));
 const catItem = id => { for (const g of CATALOGO) for (const it of g.itens) if (it.id === id) return { g, it }; return null; };
 const catInfo = it => it._info || (it._info = (() => { const ms = it.materias(); return { ms: ms.map(m => ({ nome: m.nome, horas: m.horasCiclo, topicos: m.topicos.map(t => t.nome) })), disc: ms.length, top: ms.reduce((s, m) => s + m.topicos.length, 0) }; })());
 const planosAtivos = () => S.config.concursos.filter(c => !c.arquivado);
@@ -6089,6 +6134,7 @@ function viewPlanos() {
   if (PLN.tela === "novo") return viewNovoPlano();
   const at = planoAtivoObj(), ps = planosAtivos().sort((a, b) => (b === at) - (a === at) || (b.criadoEm || 0) - (a.criadoEm || 0)), arq = S.config.concursos.filter(c => c.arquivado);
   return `<div class="head"><div><div class="label">Concursos</div><h1>Planos</h1><p class="muted" style="margin:4px 0 0">Gerencie seus planos de estudo: um por concurso, com o edital e o seu progresso.</p></div><button class="btn primary" id="plNovo">+ Criar plano</button></div><!--note-->
+    ${novosNoCatalogo().length ? `<div class="notice row wrap between" style="gap:8px;margin:0 0 14px" role="status"><span><b>${plural(novosNoCatalogo().length, "edital novo", "editais novos")}</b> no catálogo, já com disciplinas e tópicos: ${esc(novosNoCatalogo().slice(0, 3).map(it => it.cargo.split(/[–(]/)[0].trim()).join(", "))}${novosNoCatalogo().length > 3 ? "…" : ""}</span><button class="btn sm primary" id="plVerNovos">Ver no catálogo</button></div>` : ""}
     ${ps.length ? `<p class="muted" style="margin:0 0 12px">${plural(ps.length, "plano ativo", "planos ativos")}${at ? ` · o plano em uso é <b style="color:var(--ink)">${esc(at.nome)}</b>` : ""}</p>
       <div class="pl-lista">${ps.map(c => cartaoPlano(c, c === at)).join("")}</div>`
     : `<div class="empty"><h2>Nenhum plano ainda</h2><p>Crie um plano a partir de um edital ou monte um plano personalizado com as suas matérias.</p><div class="row" style="justify-content:center"><button class="btn primary" id="plNovo2">Criar plano</button></div></div>`}
@@ -6099,13 +6145,14 @@ function viewPlanos() {
 function viewNovoPlano() {
   const tem = id => S.config.concursos.some(c => c.catalogo === id);
   const grupos = CATALOGO.map(g => `<section class="panel cat-grupo" data-cgrupo>
-      <div class="cat-gh">${logoPlano({ id: g.sigla }, g.sigla)}<div><b>${esc(g.orgao)}</b><div class="muted small">${esc(g.sigla)} · ${plural(g.itens.length, "edital", "editais")} no catálogo</div></div></div>
-      <div role="radiogroup" aria-label="${esc(g.orgao)}">${g.itens.map(it => `<button type="button" class="cat-item" role="radio" aria-checked="${PLN.sel === it.id}" data-catsel="${esc(it.id)}" data-busca="${esc(semAc([g.orgao, g.sigla, it.cargo, it.edital, it.ano].join(" ")))}"><span class="cat-radio"></span><span class="grow">${esc(it.cargo)} <span class="muted">(${it.ano})</span></span>${tem(it.id) ? `<span class="pill">Você já tem</span>` : ""}</button>`).join("")}</div></section>`).join("");
+      <div class="cat-gh">${logoPlano({ id: g.sigla }, g.sigla)}<div><b>${esc(g.orgao)}</b><div class="muted small">${esc(g.sigla)} · ${plural(g.itens.length, g.site ? "cargo" : "edital", g.site ? "cargos" : "editais")} no catálogo${g.site ? " · do site Rumo à Posse" : ""}</div></div></div>
+      <div role="radiogroup" aria-label="${esc(g.orgao)}">${g.itens.map(it => `<button type="button" class="cat-item" role="radio" aria-checked="${PLN.sel === it.id}" data-catsel="${esc(it.id)}" data-busca="${esc(semAc([g.orgao, g.sigla, it.cargo, it.edital, it.ano].join(" ")))}"><span class="cat-radio"></span><span class="grow">${esc(it.cargo)} <span class="muted">${it.ano ? `(${it.ano})` : ""}${it.banca ? ` · ${esc(it.banca)}` : ""}</span></span>${tem(it.id) ? `<span class="pill">Você já tem</span>` : it.novo ? `<span class="pill good">Novo</span>` : ""}</button>`).join("")}</div></section>`).join("");
   return `<div class="head"><div><div class="label">Planos</div><h1>Novo plano</h1><p class="muted" style="margin:4px 0 0">Escolha o edital do seu plano ou crie um plano personalizado.</p></div><button class="btn" id="plVoltar">Voltar aos planos</button></div><!--note-->
     <div class="panel cat-busca"><input type="search" id="catBusca" placeholder="Busque por edital, cargo, órgão ou palavra-chave" aria-label="Buscar edital"></div>
     <p class="muted" style="margin:10px 0 16px">Não encontrou seu edital? <button type="button" class="link" id="plPers">Criar plano personalizado →</button> <span class="small">(você cola o conteúdo programático do edital e o app monta as matérias e os tópicos)</span></p>
+    ${CAT_SITE.estado === "carregando" && !CATALOGO.some(g => g.site) ? `<p class="muted" role="status">Buscando os editais publicados no site…</p>` : CAT_SITE.estado === "erro" ? `<p class="notice" role="status">Não deu para buscar os editais do site agora. Os do catálogo abaixo continuam disponíveis.</p>` : ""}
     <div class="cat-lista">${grupos}</div><p class="muted" id="catVazio" hidden>Nenhum edital do catálogo combina com a busca. Use o plano personalizado.</p>
-    <p class="muted small" style="margin-top:12px">O catálogo traz editais com o conteúdo programático já conferido. Para qualquer outro concurso, o plano personalizado lê o texto do edital.</p>
+    <p class="muted small" style="margin-top:12px">${typeof window.mesaCatalogoSite === "function" ? "Os editais publicados no site Rumo à Posse entram aqui sozinhos: a IA lê o edital e o conteúdo é conferido antes de aparecer. " : ""}Para qualquer outro concurso, o plano personalizado lê o texto do edital.</p>
     ${PLN.sel ? gavetaEdital() : ""}${PLN.criar ? modalCriarPlano() : ""}`;
 }
 function gavetaEdital() {
@@ -6114,7 +6161,8 @@ function gavetaEdital() {
     ? `<div class="pl-count">${[["Disciplinas", I.disc], ["Tópicos", I.top]].map(([r, v]) => `<div class="panel stat"><div class="label">${r}</div><div class="v">${v}</div></div>`).join("")}</div>
        <div class="list" style="margin-top:12px">${I.ms.map(m => `<details class="li cat-disc"><summary class="row between" style="gap:8px"><span>${esc(m.nome)}</span><span class="muted small">${plural(m.topicos.length, "tópico", "tópicos")}</span></summary><ol class="small muted" style="margin:8px 0 0;padding-left:20px">${m.topicos.map(t => `<li>${esc(t)}</li>`).join("")}</ol></details>`).join("")}</div>`
     : `<div class="row" style="gap:12px;align-items:center">${logoPlano({ id: g.sigla }, g.sigla)}<div><b style="font-size:1.05rem">${esc(it.cargo)}</b><div class="muted small">${esc(g.orgao)}</div></div></div>
-       <p class="notice" style="margin:14px 0">${esc(it.edital)} (${it.ano}) · ${esc(it.fonte)}.</p>
+       <p class="notice" style="margin:14px 0">${it.site ? `<span class="pill" style="margin-right:6px">✦ Gerado por IA</span>` : ""}${esc(it.edital)}${it.ano ? ` (${it.ano})` : ""} · ${esc(it.fonte)}.</p>
+       ${it.site && (it.banca || it.provas || it.pdf) ? `<p class="small" style="margin:0 0 14px">${[it.banca ? `Banca: <b>${esc(it.banca)}</b>` : "", it.provas ? `Prova: <b>${esc(it.provas)}</b>` : "", it.pdf ? `<a href="${esc(it.pdf)}" target="_blank" rel="noopener noreferrer">Abrir o PDF do edital</a>` : ""].filter(Boolean).join(" · ")}</p>` : ""}
        <div class="pl-count">${[["Disciplinas", I.disc], ["Tópicos", I.top]].map(([r, v]) => `<div class="panel stat"><div class="label">${r}</div><div class="v">${v}</div></div>`).join("")}</div>`;
   return `<div class="ovl" data-plfechar></div><aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="drTit">
     <div class="dr-h">${PLN.painel === "disciplinas" ? `<button class="btn ghost icon sm" id="drVoltar" aria-label="Voltar aos detalhes">←</button>` : ""}<div class="grow"><h2 id="drTit">${PLN.painel === "disciplinas" ? "Disciplinas" : "Edital selecionado"}</h2><p class="muted small" style="margin:2px 0 0">${PLN.painel === "disciplinas" ? "As disciplinas exigidas neste edital" : "Detalhes do concurso"}</p></div><button class="btn ghost icon sm" data-plfechar aria-label="Fechar">✕</button></div>
@@ -6187,13 +6235,17 @@ function criarPlanoCatalogo(k, nome) {
       if (existe(nm)) { const base = `${x.nome} · ${g.sigla}`.slice(0, 76); nm = base; for (let n = 2; existe(nm); n++) nm = `${base} ${n}`; }
       m = { id: uid(), nome: nm, horasCiclo: x.horasCiclo, cor: CORES[S.config.materias.length % CORES.length], topicos: [], area: adivinharArea(x.nome), peso: 1, nivel: "auto" }; S.config.materias.push(m);
     }
-    juntarTopicos(m, x.topicos.map(t => ({ nome: t.nome, sub: [] }))); if (!ids.includes(m.id)) ids.push(m.id);
+    juntarTopicos(m, x.topicos.map(t => ({ nome: t.nome, sub: t.sub || [] }))); if (!ids.includes(m.id)) ids.push(m.id);
   }
-  const c = { id: uid(), nome, cargo: it.cargo, orgao: g.orgao, bancaId: "", dataProva: "", materias: ids, criadoEm: Date.now(), arquivado: false, catalogo: it.id };
+  let bancaId = "";
+  if (it.banca) { const b = S.config.bancas.find(b => chave(b.nome) === chave(it.banca)) || { id: uid(), nome: it.banca.slice(0, 60) }; if (!S.config.bancas.includes(b)) S.config.bancas.push(b); bancaId = b.id; }
+  const c = { id: uid(), nome, cargo: it.cargo, orgao: g.orgao, bancaId, dataProva: it.provas ? dataDeTexto(it.provas) : "", materias: ids, criadoEm: Date.now(), arquivado: false, catalogo: it.id };
   S.config.concursos.push(c); return c;
 }
 function bindPlanos() {
   const fim = (msg) => { saveConfig(); render(); if (msg) toast(msg); };
+  carregarCatalogoSite();
+  const vn = $("#plVerNovos"); if (vn) vn.onclick = () => { PLN.tela = "novo"; PLN.sel = ""; PLN.criar = null; render(); window.scrollTo(0, 0); };
   const dlg = $("#main .modal") || $("#main .drawer");
   if (dlg && !dlg.contains(document.activeElement)) (dlg.querySelector("input:not([type=radio]), select, .btn.primary, button") || dlg).focus();
   $$("[data-plfechar]").forEach(b => b.onclick = () => fecharCamadaPlanos());
@@ -6203,6 +6255,7 @@ function bindPlanos() {
   const bu = $("#catBusca"); if (bu) bu.oninput = () => { const q = semAc(bu.value.trim()); let algum = false;
     $$("[data-cgrupo]").forEach(g => { let v = 0; $$("[data-catsel]", g).forEach(b => { const ok = !q || b.dataset.busca.includes(q); b.hidden = !ok; if (ok) v++; }); g.hidden = !v; if (v) algum = true; });
     $("#catVazio").hidden = algum; };
+  if (bu && bu.value) bu.oninput();
   $$("[data-catsel]").forEach(b => b.onclick = () => { PLN.sel = b.dataset.catsel; PLN.painel = "detalhe"; render(); });
   const dd = $("#drDisc"); if (dd) dd.onclick = () => { PLN.painel = "disciplinas"; render(); };
   const dv = $("#drVoltar"); if (dv) dv.onclick = () => { PLN.painel = "detalhe"; render(); };
@@ -6439,5 +6492,4 @@ boot();
 })();
 </script>
 
-<script>if ("serviceWorker" in navigator && location.protocol === "https:") window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));</script>
 </body></html>

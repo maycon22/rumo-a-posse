@@ -382,6 +382,16 @@
     }
   };
 
+  /* Catálogo de planos: editais do site lidos por IA e aprovados no painel (leitura pública, só status "aprovado"). */
+  window.mesaCatalogoSite = async () => {
+    await pronto;
+    const { data, error } = await sb.from("site_editais_planos")
+      .select("id,cargo,disciplinas,n_disciplinas,n_topicos,info,aprovado_em")
+      .eq("status", "aprovado").order("aprovado_em", { ascending: false }).limit(300);
+    if (error) throw erroDe(error);
+    return data || [];
+  };
+
   /* ---------- início ---------- */
   function iniciar() {
     if (!window.supabase || !CFG.SUPABASE_URL || !CFG.SUPABASE_KEY) {

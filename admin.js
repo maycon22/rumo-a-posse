@@ -137,6 +137,12 @@ function trocarAba(t){
   document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-selected", b.dataset.tab===t));
   if(t==="config"){ $("#lista-panel").classList.add("hidden"); abrirConfig(); return; }
   if(t==="inscritos"){ $("#lista-panel").classList.add("hidden"); abrirInscritos(); return; }
+  if(t==="editais"){
+    $("#lista-panel").classList.remove("hidden"); $("#lista-titulo").textContent="Editais → planos"; $("#btn-novo").textContent="Processar agora";
+    EDT_ATUAL=null; $("#editor").innerHTML=`<p class="empty">Escolha um edital da lista. Os planos de estudo que você aprovar aparecem em <strong>Planos e concursos</strong> no app Mesa de Estudos.</p>`;
+    carregarEditais(); return;
+  }
+  $("#btn-novo").textContent="+ Novo";
   $("#lista-panel").classList.remove("hidden");
   $("#lista-titulo").textContent = ENT[t].nome;
   $("#editor").innerHTML = `<p class="empty">Escolha um item da lista ou clique em <strong>+ Novo</strong>.</p>`;
@@ -163,6 +169,7 @@ async function carregarLista(){
     </button>`).join("");
 }
 $("#lista").addEventListener("click", e=>{
+  if(aba==="editais"){ const b=e.target.closest("[data-ed]"); if(b){ abrirEdital(b.dataset.ed); if(innerWidth<900) $("#editor").scrollIntoView({behavior:"smooth"}); } return; }
   const g=e.target.closest("[data-goto]"); if(g){ trocarAba(g.dataset.goto); return; }
   const b=e.target.closest(".item"); if(!b) return;
   if(!confirmarSaida()) return;
@@ -171,6 +178,7 @@ $("#lista").addEventListener("click", e=>{
   if(innerWidth<900) $("#editor").scrollIntoView({behavior:"smooth"});
 });
 $("#btn-novo").addEventListener("click", ()=>{
+  if(aba==="editais"){ processarEditaisAgora(); return; }
   if(!confirmarSaida()) return;
   document.querySelectorAll(".item").forEach(i=>i.setAttribute("aria-current", false));
   abrirEditor(ENT[aba].novo());

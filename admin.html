@@ -71,6 +71,9 @@ main{max-width:1240px;margin:0 auto;padding:20px;display:grid;grid-template-colu
 .pill{font-size:.72rem;font-weight:800;padding:2px 8px;border-radius:999px;align-self:start;white-space:nowrap}
 .pill.on{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
 .pill.off{background:var(--line);color:var(--muted)}
+.pill.warn{background:color-mix(in srgb,var(--marker) 55%,transparent);color:var(--marker-ink)}
+.pill.err{background:color-mix(in srgb,var(--danger) 16%,transparent);color:var(--danger)}
+details>summary{min-height:28px}
 .form{display:grid;gap:14px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media (max-width:560px){.row2{grid-template-columns:1fr}}
@@ -137,6 +140,7 @@ main{max-width:1240px;margin:0 auto;padding:20px;display:grid;grid-template-colu
     <div class="tabs" role="tablist" id="tabs">
       <button role="tab" data-tab="artigos" aria-selected="true">Artigos</button>
       <button role="tab" data-tab="concursos" aria-selected="false">Concursos</button>
+      <button role="tab" data-tab="editais" aria-selected="false">Editais → planos</button>
       <button role="tab" data-tab="produtos" aria-selected="false">Materiais</button>
       <button role="tab" data-tab="inscritos" aria-selected="false">Newsletter</button>
       <button role="tab" data-tab="config" aria-selected="false">Configurações</button>
@@ -157,6 +161,7 @@ main{max-width:1240px;margin:0 auto;padding:20px;display:grid;grid-template-colu
 <script src="dados-exemplo.js?v=20261119" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js" integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a" crossorigin="anonymous" defer></script>
-<script src="admin.js?v=20261119" defer></script>
+<script src="admin.js?v=20261122" defer></script>
+<script src="admin-editais.js?v=20261122" defer></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 /* Mesa de Estudos: guarda os arquivos do app para abrir sem internet.
    Os dados ficam no Supabase (nunca passam por este cache). */
-const CACHE = "mesa-v3";
+const CACHE = "mesa-v4";
 const BASICO = ["./", "./index.html", "./ponte-supabase.js", "../config.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
